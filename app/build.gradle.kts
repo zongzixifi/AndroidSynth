@@ -14,12 +14,20 @@ android {
 
     defaultConfig {
         applicationId = "com.example.project2"
-        minSdk = 24
+        minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
+        externalNativeBuild {
+            cmake {
+                arguments += listOf ("-DANDROID_STL=c++_shared")
+            }
+        }
     }
 
     buildTypes {
@@ -31,20 +39,27 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
     kotlinOptions {
         jvmTarget = "11"
     }
     buildFeatures {
-        compose = true
+        prefab = false
     }
 }
 
+
 dependencies {
-    val nav_version = "2.8.6"
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -63,26 +78,27 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("com.google.dagger:hilt-android:2.55")
-    kapt("com.google.dagger:hilt-android-compiler:2.53.1")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
     // Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("androidx.navigation:navigation-compose:$nav_version")
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.okhttp)
+    implementation (libs.converter.gson)
+    implementation(libs.androidx.navigation.compose)
     // Views/Fragments integration
-    implementation("androidx.navigation:navigation-fragment:$nav_version")
-    implementation("androidx.navigation:navigation-ui:$nav_version")
+    implementation(libs.androidx.navigation.fragment)
+    implementation(libs.androidx.navigation.ui)
     // Feature module support for Fragments
-    implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
+    implementation(libs.androidx.navigation.dynamic.features.fragment)
 
     // Testing Navigation
-    androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
+    androidTestImplementation(libs.androidx.navigation.testing)
 
     // JSON serialization library, works with the Kotlin serialization plugin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.oboe)
 }
 
 kapt {
