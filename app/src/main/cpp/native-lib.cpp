@@ -27,16 +27,20 @@ fluid_sequencer_t *seq;
 
 short synth_id,mySeqID;
 short recorder_id;
-int BPM = 60;
+int BPM = 120;
 int bar = 4;
 int clap = 4;
-int loopLengthMs = bar*clap/(BPM/60) * 1000; // 4 小节长度 (120 BPM)
+int tempBPM = BPM;
+int tempbar = bar;
+int tempclap = clap;
+int loopLengthMs = (bar * clap * 60000) / BPM;
 int count = 0; // 节拍器计数
 unsigned int startTime;
 
+// 时间的编码： 在loop中，loopLengthMs是整个loop循环的实际时长，通过bar、clap、BPM计算得到。在存储回放、鼓机、和弦时间时采用一下编码方法：最小单位对应16分音符（即拍子时长的四分之一），总长度为bar * clap * 4。
+
 bool isRecording = false;
 bool isPlaying = false;
-bool stopThread = false;
 bool ifMetronomeON = false;
 
 struct MidiEvent {
@@ -48,6 +52,17 @@ struct MidiEvent {
 
 std::vector<MidiEvent> midiTrack;
 std::map<std::pair<int, int>, std::vector<MidiEvent>> DrumMidiTrack;
+std::map<std::pair<int, int>, std::vector<MidiEvent>> ChordMidiTrack;
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_project2_FluidSynthManager_setBasicMusicInfo(JNIEnv *env, jobject /* this */, jint jBPM, jint jbar, jint jclap) {
+    // 使用temp暂存，直到下一周期设置
+    tempBPM = jBPM;
+    tempbar = jbar;
+    tempclap = jclap;
+    __android_log_print(ANDROID_LOG_DEBUG, "BasicMusicInfo", "reset temp BPM %d, clap %d, bar %d", tempBPM, tempclap , tempbar);
+}
 
 void midi_record_callback(unsigned int time, int note, int velocity, bool isNoteOn) {
     // 记录 MIDI 事件
@@ -61,19 +76,17 @@ void midi_record_callback(unsigned int time, int note, int velocity, bool isNote
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_setDrumNote(JNIEnv *env, jobject /* this */, jint note, jint timeNum, jint svel) {
-    unsigned int time = timeNum * (60/(BPM) * 1000)/4 ;
+    unsigned int time = (timeNum * 60000) / (BPM * 4);
 
     DrumMidiTrack[{timeNum, note}].push_back({time, note, svel, true});
-    DrumMidiTrack[{timeNum, note}].push_back({time+(60/(BPM) * 1000)/4, note, svel, false});
+    DrumMidiTrack[{timeNum, note}].push_back({time + (timeNum * 60000) / (BPM * 4), note, svel, false});
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "Recorded drum MIDI Event: Time=%d, Note=%d, Vel=%d, On=%d",
-                        timeNum, note, svel, true);
+                        time, note, svel, true);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_delDrumNote(JNIEnv *env, jobject /* this */, jint note , jint timeNum) {
-    unsigned int time = timeNum * (60/(BPM) * 1000)/4 ;
-
     auto key = std::make_pair(timeNum, note);
     auto it = DrumMidiTrack.find(key);
     if (it != DrumMidiTrack.end()) {
@@ -86,6 +99,38 @@ Java_com_example_project2_FluidSynthManager_delDrumNote(JNIEnv *env, jobject /* 
     }
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_project2_FluidSynthManager_setChordNote(JNIEnv *env, jobject /* this */, jint note, jint timeNum, jint svel, jint clapOnCount) {
+    unsigned int time = (timeNum * 60000) / (BPM * 4) ;
+
+    ChordMidiTrack[{timeNum, note}].push_back({time, note, svel, true});
+    ChordMidiTrack[{timeNum, note}].push_back({time+(timeNum * 60000) / (BPM * 4), note, svel, false});
+    __android_log_print(ANDROID_LOG_DEBUG, "ChordsDebug", "Recorded chord MIDI Event: Time=%d, Note=%d, Vel=%d, On=%d",
+                        time, note, svel, true);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_project2_FluidSynthManager_delChordNote(JNIEnv *env, jobject /* this */, jint note , jint timeNum) {
+    auto key = std::make_pair(timeNum, note);
+    auto it = ChordMidiTrack.find(key);
+    if (it != ChordMidiTrack.end()) {
+        ChordMidiTrack.erase(it);
+        __android_log_print(ANDROID_LOG_DEBUG, "ChordsDebug", "Delete chord MIDI Event: Time=%d, Note=%d, On=%d",
+                            timeNum, note, true);
+    } else {
+        __android_log_print(ANDROID_LOG_DEBUG, "ChordsDebug", "Not found chord MIDI Event: Time=%d, Note=%d, On=%d",
+                            timeNum, note, true);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_project2_FluidSynthManager_delAllChordNote(JNIEnv *env, jobject /* this */) {
+    ChordMidiTrack.clear();
+    __android_log_print(ANDROID_LOG_DEBUG, "ChordsDebug", "Delete all chord MIDI Event");
+}
 
 
 void schedule_note_on(short note, int channel, short velocity, unsigned int delay_ms) {
@@ -122,6 +167,25 @@ void loop_drum_midi_events() {
     }
 }
 
+void loop_chord_midi_events() {
+    for (const auto& [key, events] : ChordMidiTrack) {
+        for (const auto& event : events) {
+            if (event.isNoteOn) {
+                schedule_note_on(event.note, 8, event.velocity, event.time);
+                __android_log_print(ANDROID_LOG_INFO, "ChordsDebug", "schedule_note_on chord %d on： %d", event.note, event.time);
+            } else {
+                schedule_note_off(event.note, 8,   event.time);
+            }
+        }
+    }
+}
+
+void play_chord(){
+    if(count == 0){
+        loop_chord_midi_events();
+    }
+}
+
 void play_drum(){
     if(count % clap == 0){
         loop_drum_midi_events();
@@ -154,6 +218,42 @@ void loop_midi_events() {
     }
 }
 
+void rescaleMidiEvents(int prevBPM, int newBPM) {
+    if (prevBPM == newBPM) return; // BPM 不变，无需调整
+
+    double scaleFactor = (double)prevBPM / newBPM;
+
+    auto rescaleTrack = [&](std::vector<MidiEvent> &track) {
+        for (auto &event : track) {
+            event.time = static_cast<unsigned int>(event.time * scaleFactor);
+        }
+    };
+
+    rescaleTrack(midiTrack);
+
+    for (auto &[key, events] : DrumMidiTrack) {
+        rescaleTrack(events);
+    }
+
+    for (auto &[key, events] : ChordMidiTrack) {
+        rescaleTrack(events);
+    }
+
+    __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "Rescaled MIDI Events: prevBPM=%d, newBPM=%d, scaleFactor=%.4f",
+                        prevBPM, newBPM, scaleFactor);
+}
+
+void resetBasicinfo(){
+    if (count == 0){
+        rescaleMidiEvents(BPM,tempBPM);
+        BPM = tempBPM;
+        clap = tempclap;
+        bar = tempbar;
+        loopLengthMs = (bar * clap * 60000) / BPM;
+        __android_log_print(ANDROID_LOG_DEBUG, "BasicMusicInfo", "reset BPM %d, clap %d, bar %d", BPM, clap, bar);
+    }
+}
+
 void playBack(){
     if(isPlaying){
         if(count == 0){
@@ -162,15 +262,18 @@ void playBack(){
     }
 }
 
+
 // 定义回调函数, 起到确定时序的作用，每拍触发一次，播放节拍器，每四小节开头写入下一轮音符。可以加入重置时序功能
 void timer_callback(unsigned int time, fluid_event_t *event, fluid_sequencer_t *seq, void *data) {
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "Timer Event Triggered at time %u", time);
 
-
+    resetBasicinfo();
     playMetronome(); // 播放节拍器
     playBack();
     play_drum();
+    play_chord();
     count = (count + 1) % (bar*clap);
+
     // 继续发送下一个定时事件，实现周期性回调
     fluid_event_t *new_event = new_fluid_event();
     fluid_event_set_source(new_event, -1);
@@ -178,7 +281,9 @@ void timer_callback(unsigned int time, fluid_event_t *event, fluid_sequencer_t *
     fluid_event_timer(new_event, nullptr);
 
     // 设定下一次回调的时间
-    unsigned int next_time = fluid_sequencer_get_tick(seq) + loopLengthMs/(bar*clap); // 每拍回调一次
+    unsigned int beatDurationMs = 60000 / BPM; // 每拍时间
+    unsigned int next_time = fluid_sequencer_get_tick(seq) + beatDurationMs;
+    //unsigned int next_time = fluid_sequencer_get_tick(seq) + loopLengthMs/(bar*clap); // 每拍回调一次
     fluid_sequencer_send_at(seq, new_event, next_time, 1);
 
     delete_fluid_event(new_event);
@@ -220,8 +325,9 @@ Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobjec
         __android_log_print(ANDROID_LOG_ERROR, "FluidSynth", "Failed to load SoundFont");
         return env->NewStringUTF("Failed to load SoundFont");
     }
-    fluid_synth_program_change(synth, 1, 6);
+    fluid_synth_program_change(synth, 1, 0);
     fluid_synth_program_select(synth, 9,  sfid, 120, preset_number);
+    fluid_synth_program_select(synth, 8,  sfid, 0, 27);
 
     fluid_settings_setstr(settings, "audio.driver", "oboe");
     adriver = new_fluid_audio_driver(settings, synth);
@@ -285,31 +391,6 @@ Java_com_example_project2_FluidSynthManager_stopNoteDelay(JNIEnv *env, jobject /
         __android_log_print(ANDROID_LOG_INFO, "FluidSynth", "stopNote");
     }
 }
-/*
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_project2_FluidSynthManager_playMidiLoop(JNIEnv *env, jobject ) {
-    if (synth == nullptr || seq == nullptr) {
-        __android_log_print(ANDROID_LOG_ERROR, "FluidSynth", "Synthesizer or Sequencer not initialized");
-        return;
-    }
-    isPlaying = false;
-
-    std::thread([]() {
-        while (!stopThread) {
-            std::unique_lock<std::mutex> lock(mtx);
-            cv.wait(lock, [] { return isPlaying || stopThread; });
-
-            __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "playMidiLoop started: isPlaying=%d", isPlaying);
-
-            if (stopThread) break;
-
-            loop_midi_events();
-            std::this_thread::sleep_for(std::chrono::milliseconds(loopLengthMs));
-        }
-    }).detach();
-}
-*/
 
 //开启节拍器
 extern "C"
@@ -378,13 +459,3 @@ Java_com_example_project2_FluidSynthManager_clearLoop(JNIEnv *env, jobject) {
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "clearLoop");
 }
 
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_project2_FluidSynthManager_stopThread(JNIEnv *env, jobject) {
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        stopThread = true;
-    }
-    cv.notify_one();
-}

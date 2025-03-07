@@ -1,9 +1,6 @@
 package com.example.project2
 
 import android.content.Context
-import android.media.AudioFormat
-import android.media.AudioManager
-import android.media.AudioTrack
 import android.os.Bundle
 import android.view.MotionEvent
 import androidx.activity.ComponentActivity
@@ -18,10 +15,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.materialIcon
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -35,6 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -42,9 +49,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.project2.ChatScreen.ChatViewModel
+import com.example.project2.SynthPage.BasicMusicInfoSet
+import com.example.project2.SynthPage.DrumSet
+import com.example.project2.SynthPage.Keyboards
+import com.example.project2.SynthPage.ToggleButtonWithColor
+import com.example.project2.SynthPage.VerticalReorderList
 import com.example.project2.ui.theme.Project2Theme
 import java.io.File
 import java.io.FileOutputStream
+
 
 
 fun copySoundFontToInternalStorage(context: Context): String {
@@ -76,37 +89,15 @@ object FluidSynthManager {
     external fun startOverdub()
     external fun clearLoop()
     external fun startPlayback()
-    external fun stopThread()
     external fun turnMetronomeON()
     external fun destoryFluidSynth()
     external fun turnMetronomeOff()
     external fun setDrumNote(note:Int, timeNum:Int , svel :Int)
     external fun delDrumNote(note:Int, timeNum:Int)
-
-    private var audioTrack: AudioTrack? = null
-
-    fun playAudio(audioData: ShortArray) {
-        if (audioTrack == null) {
-            val sampleRate = 44100
-            val bufferSize = AudioTrack.getMinBufferSize(
-                sampleRate,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT
-            )
-
-            audioTrack = AudioTrack(
-                AudioManager.STREAM_MUSIC,
-                sampleRate,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                bufferSize,
-                AudioTrack.MODE_STREAM
-            )
-        }
-
-        audioTrack!!.write(audioData, 0, audioData.size)
-        audioTrack!!.play()
-    }
+    external fun setChordNote(note:Int, timeNum:Int , svel :Int, ClapOnCount: Int)
+    external fun delChordNote(note:Int, timeNum:Int)
+    external fun delAllChordNote()
+    external fun setBasicMusicInfo(BPM : Int, bar : Int, clap : Int,)
 
     fun initialize() {
         createFluidSynth() // 初始化 FluidSynth
@@ -115,7 +106,6 @@ object FluidSynthManager {
     fun shutdown() {
         stopPlayback()  // 停止回放
         stopRecording() // 停止录制
-        stopThread()    // 终止后台线程
         destoryFluidSynth()
         // 释放 FluidSynth 资源
         System.gc() // 强制回收
@@ -158,98 +148,20 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun DrumEachClapItem(
-    modifier: Modifier = Modifier,
-    clapNum: Int,
-    note: Int,
-    svel :Int
-) {
-    val timeNum = clapNum*4
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        ToggleButtonWithColor(
-            onStart = {
-                FluidSynthManager.setDrumNote(timeNum = timeNum, note = note, svel = svel)
-            },
-            onStop = { FluidSynthManager.delDrumNote(timeNum = timeNum, note = note) },
-            textStart = timeNum.toString(),
-            textend = ""
-        )
-        ToggleButtonWithColor(
-            onStart = {
-                FluidSynthManager.setDrumNote(timeNum = timeNum + 1, note = note, svel = svel)
-            },
-            onStop = { FluidSynthManager.delDrumNote(timeNum = timeNum + 1, note = note) },
-            textStart = timeNum.toString(),
-            textend = ""
-        )
-        ToggleButtonWithColor(
-            onStart = {
-                FluidSynthManager.setDrumNote(timeNum = timeNum + 2, note = note, svel = svel)
-            },
-            onStop = { FluidSynthManager.delDrumNote(timeNum = timeNum + 2, note = note) },
-            textStart = timeNum.toString(),
-            textend = ""
-        )
-        ToggleButtonWithColor(
-            onStart = {
-                FluidSynthManager.setDrumNote(timeNum = timeNum + 3, note = note, svel = svel)
-            },
-            onStop = { FluidSynthManager.delDrumNote(timeNum = timeNum + 3, note = note) },
-            textStart = timeNum.toString(),
-            textend = ""
-        )
-    }
-}
-
-@Composable
-fun DrumEachDrumSetItem(modifier: Modifier = Modifier,  clapList : List<Int>, note : Int, svel :Int) {
-
-    Column {
-        clapList.forEach { clapNum ->
-            DrumEachClapItem(
-                clapNum = clapNum,
-                note = note,
-                svel = svel
-            )
-        }
-    }
-}
-
-@Composable
-fun DrumSet(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-    ){
-        DrumEachDrumSetItem(
-            modifier = Modifier,
-            clapList = listOf(0, 1, 2, 3),
-            note = 38,
-            svel = 100
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun DrumPrev() {
-    DrumSet()
-}
-
-@Composable
-fun ToggleButtonWithColor(
+fun ToggleButton(
     modifier: Modifier = Modifier,
     onStart: () -> Unit,
     onStop: () -> Unit,
     textStart: String,
     textend: String,
-    ) {
+    ColorOnStart: Color = MaterialTheme.colorScheme.primary,
+    ColorOnEnd: Color = MaterialTheme.colorScheme.secondary,
+    shape: Shape = RectangleShape
+) {
     var isTriggered by remember { mutableStateOf(false) }
 
     Button(
+        shape = shape,
         onClick = {
             isTriggered = !isTriggered
             if (isTriggered) {
@@ -258,13 +170,103 @@ fun ToggleButtonWithColor(
                 onStop()
             }
         },
-        modifier = modifier,
+        modifier = modifier
+            .padding(1.dp)
+        ,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isTriggered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+            containerColor = if (isTriggered) ColorOnStart else ColorOnEnd
         )
     ) {
         Text(text = if (isTriggered) textStart else textend)
     }
+}
+
+@Composable
+fun ToggleButtonIcon(
+    modifier: Modifier = Modifier,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    IconStart: ImageVector,
+    Iconend:  ImageVector,
+    ColorOnStart: Color = MaterialTheme.colorScheme.primary,
+    ColorOnEnd: Color = MaterialTheme.colorScheme.secondary,
+    shape: Shape = RectangleShape
+) {
+    var isTriggered by remember { mutableStateOf(false) }
+
+    Button(
+        shape = shape,
+        onClick = {
+            isTriggered = !isTriggered
+            if (isTriggered) {
+                onStart()
+            } else {
+                onStop()
+            }
+        },
+        modifier = modifier
+            .padding(1.dp)
+        ,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isTriggered) ColorOnStart else ColorOnEnd
+        )
+    ) {
+        Icon(
+            imageVector = if (isTriggered) IconStart else Iconend,
+            contentDescription = ""
+        )
+    }
+}
+
+@Composable
+fun Buttons(modifier: Modifier = Modifier) {
+    Row (
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment =  Alignment.CenterVertically
+    ){
+        ToggleButton(
+            modifier= Modifier.padding(2.dp),
+            onStart = {
+                FluidSynthManager.startRecording()
+            },
+            onStop = { FluidSynthManager.stopRecording() },
+            textStart = "rec",
+            textend = "rec",
+            ColorOnStart = Color.Red,
+            ColorOnEnd = Color.Gray,
+        )
+        ToggleButtonIcon(
+            modifier= Modifier.padding(2.dp),
+            onStart = {
+                FluidSynthManager.startPlayback()
+            },
+            onStop = { FluidSynthManager.stopPlayback() },
+            IconStart = Icons.Filled.Pause,
+            Iconend = Icons.Outlined.PlayArrow
+        )
+        Button(
+            modifier= Modifier.padding(2.dp),
+            onClick = { FluidSynthManager.clearLoop() }) {
+            Text(text = "Clear Loop")
+        }
+        ToggleButton(
+            modifier= Modifier.padding(2.dp),
+            onStart = {
+                FluidSynthManager.turnMetronomeON()
+            },
+            onStop = { FluidSynthManager.turnMetronomeOff() },
+            textStart = "MetronomeOff",
+            textend = "MetronomeON"
+        )
+    }
+}
+
+
+@Preview
+@Composable
+private fun BottonsPrev() {
+    Buttons()
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -279,45 +281,15 @@ fun TestView(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ){
-            ToggleButtonWithColor(
-                onStart = {
-                    FluidSynthManager.startRecording()
-                          },
-                onStop = { FluidSynthManager.stopRecording() },
-                textStart = "rec",
-                textend = "Stop rec"
-            )
-            Button(onClick = { FluidSynthManager.startOverdub() }) {
-                Text(text = "Start Overdub")
-            }
-            ToggleButtonWithColor(
-                onStart = {
-                    FluidSynthManager.startPlayback()
-                },
-                onStop = { FluidSynthManager.stopPlayback() },
-                textStart = "Start play",
-                textend = "Stop Playback"
-            )
-            Button(onClick = { FluidSynthManager.clearLoop() }) {
-                Text(text = "Clear Loop")
-            }
-            Button(onClick = { FluidSynthManager.turnMetronomeON() }) {
-                Text(text = "metornome")
-            }
-            ToggleButtonWithColor(
-                onStart = {
-                    FluidSynthManager.turnMetronomeON()
-                },
-                onStop = { FluidSynthManager.turnMetronomeOff() },
-                textStart = "MetronomeOff",
-                textend = "MetronomeON"
-            )
+            BasicMusicInfoSet()
+            //Buttons()
             Text(text = "PlayHere")
-            PlayZone( modifier = Modifier
-                .heightIn(min = 10.dp, max = 200.dp),
+            Keyboards( modifier = Modifier
+                .heightIn(min = 10.dp, max = 300.dp),
                 )
 
             DrumSet()
+            VerticalReorderList()
         }
     }
 }
