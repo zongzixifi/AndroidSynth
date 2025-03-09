@@ -1,6 +1,7 @@
 package com.example.project2.ChatScreen
 
 import android.util.Log
+import androidx.compose.animation.core.StartOffsetType.Companion.Delay
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -27,6 +28,7 @@ import com.example.project2.data.network.ChatAPI
 import com.example.project2.data.network.ChatRequest
 import com.example.project2.data.network.NetworkChatItem
 import com.google.gson.Gson
+import kotlinx.coroutines.Delay
 import kotlinx.coroutines.Dispatchers
 import java.io.IOException
 
@@ -50,15 +52,19 @@ class ChatViewModel : ViewModel() {
             "top_p" to  0.9,
         )
 
-        sendChatRequest(model = "deepseek-r1:70b", prompt = chatItem.chatText, options = options)
+        sendChatRequest(model = "braindamage", prompt = chatItem.chatText, options = options)
     }
 
 
-    private fun sendChatRequest(model: String = "deepseek-r1:70b", prompt: String, options: Map<String, Any>) {
+    private fun sendChatRequest(model: String = "SFTMusicBot", prompt: String, options: Map<String, Any>) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 fun NetworkChatItem.toChatItem(): ChatItem {
-                    return ChatItem(id = count , character = "bot", chatText = this.response)
+                    return ChatItem(
+                        id = System.currentTimeMillis().toInt(), // 避免 `count` 计算错误
+                        character = "bot",
+                        chatText = this.response.trim() // 确保 `response` 不包含意外的空格或特殊字符
+                    )
                 }
 
                 val request = ChatRequest(model, prompt, stream = false, options)

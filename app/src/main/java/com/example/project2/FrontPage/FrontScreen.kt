@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Unit ={}) {
+fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Unit ={}, onClickJumpToSynth: () -> Unit ={}, onClickJumpToMusicGen: () -> Unit ={}) {
     val ClassContainersSetterChatPage = ClassContainerSetter(
         text = "Don'n know how to get start?\n" +
                 "\n" +
@@ -49,9 +49,9 @@ fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Uni
             Spacer(Modifier.padding(vertical = 5.dp))
             ModelContainer(setter =  ClassContainersSetterChatPage, onClick = onClickJumpToAssistant)
             Spacer(Modifier.padding(vertical = 5.dp))
-            ModelContainer(setter =  ClassContainersSetterMusicPage)
+            ModelContainer(setter =  ClassContainersSetterMusicPage, onClick = onClickJumpToSynth)
             Spacer(Modifier.padding(vertical = 5.dp))
-            ModelContainer(setter =  ClassContainersSetterGeneratePage)
+            ModelContainer(setter =  ClassContainersSetterGeneratePage, onClick = onClickJumpToMusicGen)
             Spacer(Modifier.padding(vertical = 5.dp))
         }
     }

@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -250,57 +252,72 @@ fun VerticalReorderList(modifier: Modifier = Modifier) {
                 }
             }
     }
-
-    Row(
-        horizontalArrangement = Arrangement.Start
-    ) {
-        LazyRow(
-            state = state.listState,
-            modifier = Modifier
-                .widthIn(min = 20.dp, max = 320.dp)
-                .reorderable(state)
-                .detectReorderAfterLongPress(state)
+    Card (
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp
+        ),
+    ){
+        Row(
+            horizontalArrangement = Arrangement.Start
         ) {
-            items(chords, key = { it.id }) { chord ->
-                val chordIndex = chords.indexOf(chord)
-                val timeNum = chords.take(chordIndex).sumOf { it.beats }
-                ReorderableItem(state, key = chord) { isDragging ->
-                    val elevation by animateDpAsState(if (isDragging) 16.dp else 0.dp)
-                    Box(
-                        modifier = Modifier
-                            .shadow(elevation)
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(horizontal = 2.dp)
-                    ) {
-                        ChordItem(
-                            initialChord = chord.type,
-                            RootNote = chord.root,
-                            initialBeats = chord.beats,
-                            onChordUpdated = { selectedChord, selectedBeats, selectedRoot, selectedoctave ->
-                                val rootNumPrv = getMidiFromRootNote(chord.root, chord.octave)
-                                delChord(rootNumPrv, chord.type, timeNum)
-                                chord.type = selectedChord
-                                chord.beats = selectedBeats
-                                chord.root = selectedRoot
-                                chord.octave = selectedoctave
-                                Log.d("ChordsDebug", "Updated Chords: $chords")
-                                val rootNum = getMidiFromRootNote(chord.root, chord.octave)
-                                setChrod(rootNum, chord.type, timeNum, svel = 60, clapOnCount = chord.beats)
-                            },
-                            onDelete = { chords.remove(chord) },
-                        )
+            LazyRow(
+                state = state.listState,
+                modifier = Modifier
+                    .widthIn(min = 20.dp, max = 320.dp)
+                    .reorderable(state)
+                    .detectReorderAfterLongPress(state)
+            ) {
+                items(chords, key = { it.id }) { chord ->
+                    val chordIndex = chords.indexOf(chord)
+                    val timeNum = chords.take(chordIndex).sumOf { it.beats }
+                    ReorderableItem(state, key = chord) { isDragging ->
+                        val elevation by animateDpAsState(if (isDragging) 16.dp else 0.dp)
+                        Box(
+                            modifier = Modifier
+                                .shadow(elevation)
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(horizontal = 2.dp)
+                        ) {
+                            ChordItem(
+                                initialChord = chord.type,
+                                RootNote = chord.root,
+                                initialBeats = chord.beats,
+                                onChordUpdated = { selectedChord, selectedBeats, selectedRoot, selectedoctave ->
+                                    val rootNumPrv = getMidiFromRootNote(chord.root, chord.octave)
+                                    delChord(rootNumPrv, chord.type, timeNum)
+                                    chord.type = selectedChord
+                                    chord.beats = selectedBeats
+                                    chord.root = selectedRoot
+                                    chord.octave = selectedoctave
+                                    Log.d("ChordsDebug", "Updated Chords: $chords")
+                                    val rootNum = getMidiFromRootNote(chord.root, chord.octave)
+                                    setChrod(
+                                        rootNum,
+                                        chord.type,
+                                        timeNum,
+                                        svel = 60,
+                                        clapOnCount = chord.beats
+                                    )
+                                },
+                                onDelete = { chords.remove(chord) },
+                            )
+                        }
                     }
                 }
             }
+            AddChordButton(
+                modifier = Modifier
+                    .widthIn(min = 20.dp, max = 40.dp),
+                onAddChord = { chord, beats, root, octave ->
+                    val newChord = Chord(root, chord, beats, octave)
+                    chords.add(newChord)
+                }
+            )
         }
-        AddChordButton(
-            modifier = Modifier
-                .widthIn(min = 20.dp, max = 40.dp),
-            onAddChord = {chord, beats, root, octave ->
-                val newChord = Chord(root, chord, beats, octave)
-                chords.add(newChord)
-            }
-        )
     }
 }
 

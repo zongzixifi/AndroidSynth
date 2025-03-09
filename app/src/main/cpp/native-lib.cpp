@@ -17,11 +17,13 @@
 fluid_settings_t *settings = nullptr;
 fluid_synth_t *synth = nullptr;
 fluid_audio_driver_t *adriver = nullptr;
-short buffer[2048];
 
 int preset_number = 25; // 鼓组设置
 std::mutex mtx;
 std::condition_variable cv;
+std::string fileNameStr;
+std::string filePathStr;
+
 
 fluid_sequencer_t *seq;
 
@@ -42,6 +44,8 @@ unsigned int startTime;
 bool isRecording = false;
 bool isPlaying = false;
 bool ifMetronomeON = false;
+bool ifSaving = false;
+
 
 struct MidiEvent {
     unsigned int time;
@@ -53,6 +57,11 @@ struct MidiEvent {
 std::vector<MidiEvent> midiTrack;
 std::map<std::pair<int, int>, std::vector<MidiEvent>> DrumMidiTrack;
 std::map<std::pair<int, int>, std::vector<MidiEvent>> ChordMidiTrack;
+
+void reCreateFluidSynthForSave();
+
+extern "C"
+void JNIEXPORT JNICALL Java_com_example_project2_FluidSynthManager_destoryFluidSynth(JNIEnv *env, jobject thiz);
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -125,13 +134,104 @@ Java_com_example_project2_FluidSynthManager_delChordNote(JNIEnv *env, jobject /*
     }
 }
 
+std::mutex destroyMutex;
+std::condition_variable destroyCond;
+std::atomic<bool> shouldDestroyFluidSynth(false);
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_delAllChordNote(JNIEnv *env, jobject /* this */) {
     ChordMidiTrack.clear();
     __android_log_print(ANDROID_LOG_DEBUG, "ChordsDebug", "Delete all chord MIDI Event");
 }
+bool OnSetting = false;
 
+void StopSaveWav() {
+    if (!ifSaving) return;
+
+    // 停止录制和播放
+    isRecording = false;
+    isPlaying = false;
+    ifMetronomeON = false;
+    ifSaving = false;
+
+    __android_log_print(ANDROID_LOG_DEBUG, "SaverDebug", "Stopping WAV save process...");
+
+    if (synth) {
+        fluid_synth_all_sounds_off(synth, -1);  // 关闭所有声音
+        fluid_synth_all_notes_off(synth, -1);   // 停止所有音符
+    }
+    {
+        std::lock_guard<std::mutex> lock(destroyMutex);
+        shouldDestroyFluidSynth = true;
+    }
+    destroyCond.notify_one();
+    __android_log_print(ANDROID_LOG_INFO, "SaverDebug", "WAV file saved and FluidSynth stopped.");
+}
+
+void SaveWav(){
+    if(ifSaving) {
+        if (count == 0 && !OnSetting) {
+            __android_log_print(ANDROID_LOG_DEBUG, "SaverDebug",
+                                "Starting WAV save process...");
+            if (seq) {
+                fluid_sequencer_remove_events(seq, -1, synth_id, -1 );  // 清空所有未播放的事件
+            }
+            if (!adriver) {
+                __android_log_print(ANDROID_LOG_ERROR, "SaverDebug", "Failed to create adriver.");
+                return;
+            } else{
+                __android_log_print(ANDROID_LOG_DEBUG, "SaverDebug", "adriver OK");
+            }
+
+            isRecording = false;
+            isPlaying = true;
+            ifMetronomeON = false;
+            OnSetting = true;
+        }else if(count == 0 && OnSetting && !shouldDestroyFluidSynth){
+            StopSaveWav();
+        }
+    }
+}
+
+
+std::string jstringToString(JNIEnv *env, jstring jStr) {
+    if (!jStr) return "";
+
+    const char *charStr = env->GetStringUTFChars(jStr, nullptr);
+    std::string str(charStr);
+    env->ReleaseStringUTFChars(jStr, charStr); // 释放资源
+
+    return str;
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_project2_FluidSynthManager_destroyFluidSynthLoop(JNIEnv *env, jobject /* this */) {
+    while (true) {
+        std::unique_lock<std::mutex> lock(destroyMutex);
+        destroyCond.wait(lock, []{ return shouldDestroyFluidSynth.load(); }); // 线程睡眠，等待信号
+        __android_log_print(ANDROID_LOG_INFO, "destroyFluidSynthLoop", "Waiting for signal");
+        if (shouldDestroyFluidSynth) {
+            shouldDestroyFluidSynth = false; // 重置标志位
+            __android_log_print(ANDROID_LOG_INFO, "destroyFluidSynthLoop", "Destroying FluidSynth in background thread.");
+            Java_com_example_project2_FluidSynthManager_destoryFluidSynth(nullptr, nullptr);
+            break;
+        }
+    }
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_project2_FluidSynthManager_SaveToWav(JNIEnv *env, jobject /* this */, jstring fileName, jstring Path){
+    fileNameStr = jstringToString(env, fileName);
+    filePathStr = jstringToString(env, Path);
+    __android_log_print(ANDROID_LOG_DEBUG, "SaverDebug", "about to save to WAV in %s, %s.",filePathStr.c_str(),fileNameStr.c_str());
+    reCreateFluidSynthForSave();
+    ifSaving = true;
+}
 
 void schedule_note_on(short note, int channel, short velocity, unsigned int delay_ms) {
     fluid_event_t *event = new_fluid_event();
@@ -262,18 +362,27 @@ void playBack(){
     }
 }
 
+// 向前端传输count节拍
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_example_project2_FluidSynthManager_getCount(JNIEnv *env, jobject thiz) {
+    float progress = (float)(count)/(bar*clap -1);
+    return progress;
+}
+
 
 // 定义回调函数, 起到确定时序的作用，每拍触发一次，播放节拍器，每四小节开头写入下一轮音符。可以加入重置时序功能
 void timer_callback(unsigned int time, fluid_event_t *event, fluid_sequencer_t *seq, void *data) {
+
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "Timer Event Triggered at time %u", time);
 
+    SaveWav();
     resetBasicinfo();
     playMetronome(); // 播放节拍器
     playBack();
     play_drum();
     play_chord();
-    count = (count + 1) % (bar*clap);
 
+    count = (count + 1) % (bar*clap);
     // 继续发送下一个定时事件，实现周期性回调
     fluid_event_t *new_event = new_fluid_event();
     fluid_event_set_source(new_event, -1);
@@ -309,6 +418,13 @@ void print_option( void *data, const char *name, const char *option){
     __android_log_print(ANDROID_LOG_INFO, "FluidSynth", "Available %s: %s", name, option);
 }
 
+void fluidsynth_change(int sfid){
+    fluid_synth_program_change(synth, 1, 0);
+    fluid_synth_program_select(synth, 9,  sfid, 120, preset_number);
+    fluid_synth_program_select(synth, 8,  sfid, 0, 27);
+}
+
+
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobject thiz) {
@@ -325,9 +441,7 @@ Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobjec
         __android_log_print(ANDROID_LOG_ERROR, "FluidSynth", "Failed to load SoundFont");
         return env->NewStringUTF("Failed to load SoundFont");
     }
-    fluid_synth_program_change(synth, 1, 0);
-    fluid_synth_program_select(synth, 9,  sfid, 120, preset_number);
-    fluid_synth_program_select(synth, 8,  sfid, 0, 27);
+    fluidsynth_change(sfid);
 
     fluid_settings_setstr(settings, "audio.driver", "oboe");
     adriver = new_fluid_audio_driver(settings, synth);
@@ -346,11 +460,74 @@ Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobjec
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_destoryFluidSynth(JNIEnv *env, jobject thiz) {
-    delete_fluid_audio_driver(adriver);
-    delete_fluid_sequencer(seq);
-    delete_fluid_synth(synth);
+    __android_log_print(ANDROID_LOG_INFO, "FluidSynthDestory", "Starting FluidSynth destruction...");
 
-    __android_log_print(ANDROID_LOG_INFO, "FluidSynth", "FluidSynth delete successfully");
+    if (adriver) {
+        __android_log_print(ANDROID_LOG_INFO, "FluidSynthDestory", "Deleteing fluid_audio_driver.");
+        delete_fluid_audio_driver(adriver);
+        adriver = nullptr;
+        __android_log_print(ANDROID_LOG_INFO, "FluidSynthDestory", "Deleted fluid_audio_driver.");
+    }
+
+    if (seq) {
+        fluid_sequencer_unregister_client(seq, synth_id);
+        fluid_sequencer_unregister_client(seq, mySeqID);
+        fluid_sequencer_remove_events(seq, -1, synth_id, -1);
+        fluid_sequencer_remove_events(seq, -1, mySeqID, -1);
+        delete_fluid_sequencer(seq);
+        seq = nullptr;
+        __android_log_print(ANDROID_LOG_INFO, "FluidSynthDestory", "Deleted fluid_sequencer.");
+    }
+
+    if (synth) {
+        delete_fluid_synth(synth);
+        synth = nullptr;
+        __android_log_print(ANDROID_LOG_INFO, "FluidSynthDestory", "Deleted fluid_synth.");
+    }
+
+    if (settings) {
+        delete_fluid_settings(settings);
+        settings = nullptr;
+        __android_log_print(ANDROID_LOG_INFO, "FluidSynthDestory", "Deleted fluid_settings.");
+    }
+
+    __android_log_print(ANDROID_LOG_INFO, "FluidSynthDestory", "FluidSynth successfully destroyed.");
+}
+
+void reCreateFluidSynthForSave(){
+    __android_log_print(ANDROID_LOG_INFO, "SaverDebug", "reCreate FluidSynth For Save.");
+    Java_com_example_project2_FluidSynthManager_destoryFluidSynth(nullptr, nullptr);
+
+    // 创建 FluidSynth 组件
+    settings = new_fluid_settings();
+    //  加载 SoundFont
+    synth = new_fluid_synth(settings);
+    int sfid = fluid_synth_sfload(synth, "/data/data/com.example.project2/files/soundfont.sf2", 1);
+    if (sfid == -1) {
+        __android_log_print(ANDROID_LOG_ERROR, "SaverDebug", "Failed to load SoundFont");
+        return;
+    }
+
+    std::string filePath = filePathStr + "/" + fileNameStr + ".wav";
+    const char *filename = filePath.c_str();
+
+    fluid_settings_setstr(settings, "audio.driver", "file");
+    fluid_settings_setstr(settings, "audio.file.name", filename);
+    fluid_settings_setstr(settings, "audio.file.type", "wav");
+
+    fluidsynth_change(sfid);
+    adriver = new_fluid_audio_driver(settings, synth);
+
+    seq = new_fluid_sequencer2(0);
+    synth_id = fluid_sequencer_register_fluidsynth(seq, synth);
+    //recorder_id = fluid_sequencer_register_client(seq, "MIDI Recorder", midi_record_callback, nullptr);
+    mySeqID = fluid_sequencer_register_client(seq, "timer", timer_callback, nullptr);
+    //synth_id = fluid_sequencer_register_client(seq, "MIDI Handler", midi_event_callback, synth);
+    __android_log_print(ANDROID_LOG_INFO, "SaverDebug", "FluidSynth initialized successfully");
+    fluid_settings_foreach_option(settings, "audio.driver", nullptr, print_option);
+
+    count = 0;
+    startTimer();
 }
 
 extern "C"

@@ -17,8 +17,20 @@ object ChatScreenPage{
     const val PageName = "chatscreen"
 }
 
+@Serializable
+object SynthScreenPage{
+    const val PageName = "synthscreen"
+}
+
+@Serializable
+object MusicGenScreenPage{
+    const val PageName = "MusicGenScreen"
+}
+
 
 object Destinations{
     val FrontScreenPageRoute = Json.encodeToString(FrontScreenPage)
     val ChatScreenPageRoute = Json.encodeToString(ChatScreenPage)
+    val SynthScreenPageRoute = Json.encodeToString(SynthScreenPage)
+    val MusicGenScreenPageRoute = Json.encodeToString(MusicGenScreenPage)
 }

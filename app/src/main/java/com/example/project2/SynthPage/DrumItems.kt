@@ -124,7 +124,7 @@ fun DrumSet(modifier: Modifier = Modifier) {
                 clapList = listOf(0, 1, 2, 3),
                 note = 35,
                 svel = 100,
-                Drums = "Bass"
+                Drums = "Boom"
             )
             Spacer(Modifier.padding(2.dp))
             DrumEachDrumSetItem(
@@ -132,7 +132,7 @@ fun DrumSet(modifier: Modifier = Modifier) {
                 clapList = listOf(0, 1, 2, 3),
                 note = 38,
                 svel = 100,
-                Drums = "Snare"
+                Drums = "Clap"
             )
             Spacer(Modifier.padding(2.dp))
             DrumEachDrumSetItem(
@@ -148,7 +148,7 @@ fun DrumSet(modifier: Modifier = Modifier) {
                 clapList = listOf(0, 1, 2, 3),
                 note = 51,
                 svel = 100,
-                Drums = "Cymbal"
+                Drums = "Crash"
             )
             Spacer(Modifier.padding(2.dp))
             DrumEachDrumSetItem(
@@ -156,7 +156,7 @@ fun DrumSet(modifier: Modifier = Modifier) {
                 clapList = listOf(0, 1, 2, 3),
                 note = 42,
                 svel = 100,
-                Drums = "Hat"
+                Drums = "Hats"
             )
 
         }
