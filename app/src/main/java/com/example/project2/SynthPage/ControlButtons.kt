@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +44,10 @@ import com.example.project2.FluidSynthManager
 import com.example.project2.FluidSynthManager.destroyFluidSynthLoop
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 
@@ -56,7 +60,7 @@ fun ToggleButton(
     textend: String,
     ColorOnStart: Color = MaterialTheme.colorScheme.primary,
     ColorOnEnd: Color = MaterialTheme.colorScheme.secondary,
-    shape: Shape = RectangleShape
+    shape: Shape = RectangleShape,
 ) {
     var isTriggered by remember { mutableStateOf(false) }
 
@@ -119,7 +123,11 @@ fun ToggleButtonIcon(
 }
 
 @Composable
-fun Buttons(modifier: Modifier = Modifier, filepath: File) {
+fun Buttons(
+    modifier: Modifier = Modifier,
+    filepath: File,
+    viewModel : MetronomeViewModel
+) {
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -169,13 +177,16 @@ fun Buttons(modifier: Modifier = Modifier, filepath: File) {
                 IconStart = Icons.Filled.Timer,
                 Iconend = Icons.Filled.Timer,
             )
-            SaveButtonDialog(filepath)
+            SaveButtonDialog(filepath, viewModel)
         }
     }
 }
 
 @Composable
-fun LinearDeterminateIndicator(viewModel: MetronomeViewModel) {
+fun LinearDeterminateIndicator(
+    modifier: Modifier = Modifier,
+    viewModel: MetronomeViewModel
+) {
     val count by viewModel.count.collectAsState()
     val progress = count.toFloat()
 
@@ -187,7 +198,7 @@ fun LinearDeterminateIndicator(viewModel: MetronomeViewModel) {
 
     LinearProgressIndicator(
         progress = { animatedProgress },
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(10.dp),
     )
@@ -196,12 +207,14 @@ fun LinearDeterminateIndicator(viewModel: MetronomeViewModel) {
 
 @Composable
 fun SaveButtonDialog(
-     Path : File
+     Path : File,
+     viewModel: MetronomeViewModel
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    var fileName by remember { mutableStateOf("output") } // 默认文件名
+    var showProgressDialog by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var fileName by remember { mutableStateOf("output") }
 
-    // 按钮：点击后弹出对话框
     Button(
         shape = RectangleShape,
         modifier = Modifier.padding(2.dp),
@@ -231,10 +244,18 @@ fun SaveButtonDialog(
             },
             confirmButton = {
                 Button(onClick = {
-                    showDialog = false
-                    FluidSynthManager.SaveToWav(fileName, Path.toString())
+                    showProgressDialog = true // 显示进度对话框
+
                     CoroutineScope(Dispatchers.IO).launch {
-                        destroyFluidSynthLoop()  // 运行在后台线程
+                        FluidSynthManager.SaveToWav(fileName, Path.toString())
+                        withContext(Dispatchers.IO) {
+                            destroyFluidSynthLoop()
+                        }
+                        withContext(Dispatchers.Main) {
+                            showProgressDialog = false
+                            showSuccessDialog = true
+                            showDialog = false
+                        }
                     }
                 }) {
                     Text("保存")
@@ -246,12 +267,48 @@ fun SaveButtonDialog(
                 }
             }
         )
+
+    if (showProgressDialog) {
+        AlertDialog(
+            onDismissRequest = { /* 禁止关闭进度对话框 */ },
+            title = { Text("保存中...") },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("正在保存文件，请稍候...")
+                    LinearDeterminateIndicator(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        viewModel = viewModel
+                    )
+                }
+            },
+            confirmButton = { },
+            dismissButton = { }
+        )
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            title = { Text("保存完成") },
+            text = { Text("文件已成功保存！") },
+            confirmButton = {
+                Button(onClick = {
+                    showSuccessDialog = false
+                }) {
+                    Text("确定")
+                }
+            }
+        )
+    }
     }
 }
 
 @Preview
 @Composable
 private fun BottonsPrev() {
+    val fakeViewModel = object : MetronomeViewModel() {
+        override val count: StateFlow<Double> = MutableStateFlow(4.0)
+    }
     val fakeFile = File("/storage/emulated/0/Music")
-    Buttons(filepath = fakeFile)
+    Buttons(filepath = fakeFile, viewModel = fakeViewModel)
 }

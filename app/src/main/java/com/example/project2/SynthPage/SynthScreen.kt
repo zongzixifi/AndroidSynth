@@ -28,8 +28,8 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ){
-            LinearDeterminateIndicator(metronomeViewModel)
-            Buttons(filepath =  filepath)
+            LinearDeterminateIndicator(viewModel = metronomeViewModel)
+            Buttons(filepath =  filepath, viewModel = metronomeViewModel)
             BasicMusicInfoSet()
             Keyboards( modifier = Modifier
                 .heightIn(min = 10.dp, max = 300.dp),
