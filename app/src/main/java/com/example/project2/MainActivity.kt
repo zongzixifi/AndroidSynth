@@ -1,6 +1,7 @@
 package com.example.project2
 
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Environment
 import androidx.activity.ComponentActivity
@@ -80,7 +81,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        FluidSynthManager.initialize() //初始化FluidSynth
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         val metronomeViewModel: MetronomeViewModel by viewModels()
         copySoundFontToInternalStorage(this)
         val filepath = this.getExternalFilesDir(Environment.DIRECTORY_MUSIC)

@@ -419,7 +419,7 @@ void print_option( void *data, const char *name, const char *option){
 }
 
 void fluidsynth_change(int sfid){
-    fluid_synth_program_change(synth, 1, 0);
+    fluid_synth_program_select(synth, 1,  sfid, 0, 1);
     fluid_synth_program_select(synth, 9,  sfid, 120, preset_number);
     fluid_synth_program_select(synth, 8,  sfid, 0, 27);
 }
@@ -432,6 +432,7 @@ Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobjec
     if (synth != nullptr) {
         return env->NewStringUTF("FluidSynth already initialized");
     }
+
     // 创建 FluidSynth 组件
     settings = new_fluid_settings();
     synth = new_fluid_synth(settings);
@@ -442,15 +443,14 @@ Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobjec
         return env->NewStringUTF("Failed to load SoundFont");
     }
     fluidsynth_change(sfid);
-
+    //创建音频驱动
     fluid_settings_setstr(settings, "audio.driver", "oboe");
     adriver = new_fluid_audio_driver(settings, synth);
-
+    //创建序列器
     seq = new_fluid_sequencer2(0);
+    //绑定序列器客户端
     synth_id = fluid_sequencer_register_fluidsynth(seq, synth);
-    //recorder_id = fluid_sequencer_register_client(seq, "MIDI Recorder", midi_record_callback, nullptr);
     mySeqID = fluid_sequencer_register_client(seq, "timer", timer_callback, nullptr);
-    //synth_id = fluid_sequencer_register_client(seq, "MIDI Handler", midi_event_callback, synth);
     __android_log_print(ANDROID_LOG_INFO, "FluidSynth", "FluidSynth initialized successfully");
     fluid_settings_foreach_option(settings, "audio.driver", nullptr, print_option);
     startTimer();

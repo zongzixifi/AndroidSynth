@@ -1,8 +1,13 @@
 package com.example.project2.MusicGenPage
 
+import android.content.ContentValues
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -25,6 +30,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -61,6 +67,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.util.concurrent.TimeUnit
 
 class MusicGenViewModel : ViewModel() {
 
@@ -70,31 +77,64 @@ class MusicGenViewModel : ViewModel() {
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(300, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS)
+        .writeTimeout(300, TimeUnit.SECONDS)
+        .build()
 
-    fun uploadMusicAndGenerate(context: Context, musicUri: Uri) {
+    fun uploadMusicAndGenerate(context: Context, musicUri: Uri?, prompt: String) {
         _isGenerating.value = true
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val file = uriToFile(context, musicUri)
-                val requestBody = file.asRequestBody("audio/*".toMediaTypeOrNull())
-                val multipartBody = MultipartBody.Part.createFormData("file", file.name, requestBody)
+                val url = "http://172.25.54.61:5050/generate"  // Android 访问本机的方式
+                _generatedMusicUri.value = null
+
+                val requestBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
+                    .addFormDataPart("prompt", prompt)  // 添加文本 prompt
+
+                // **如果用户上传了音频**
+                musicUri?.let {
+                    val file = uriToFile(context, it)
+                    val requestBody = file.asRequestBody("audio/wav".toMediaTypeOrNull())
+                    requestBuilder.addFormDataPart("audio", file.name, requestBody)
+                }
 
                 val request = Request.Builder()
-                    .url("https://your-model-endpoint.com/generate")
-                    .post(multipartBody.body)
+                    .url(url)
+                    .post(requestBuilder.build())
                     .build()
 
+
+
                 val response = client.newCall(request).execute()
+
+                Log.d("MusicGenViewModel", "Response received, code: ${response.code}")
+
+
+                if (response.body == null) {
+                    Log.e("MusicGenViewModel", "Received empty response body from server")
+                    return@launch
+                }
+
                 if (response.isSuccessful) {
-                    val generatedFile = File(context.cacheDir, "generated_music.wav")
-                    response.body?.byteStream()?.use { input ->
-                        FileOutputStream(generatedFile).use { output ->
-                            input.copyTo(output)
-                        }
+                    Log.d("MusicGenViewModel", "音频数据成功返回，正在保存...")
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Audio.Media.DISPLAY_NAME, "generated_music.wav")
+                        put(MediaStore.Audio.Media.MIME_TYPE, "audio/wav")
+                        put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_MUSIC)
                     }
-                    _generatedMusicUri.value = Uri.fromFile(generatedFile)
+
+                    val resolver = context.contentResolver
+                    val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+                    uri?.let { generatedUri ->
+                        resolver.openOutputStream(generatedUri)?.use { outputStream ->
+                            response.body?.byteStream()?.copyTo(outputStream)
+                        }
+                        _generatedMusicUri.value = generatedUri
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -115,6 +155,8 @@ class MusicGenViewModel : ViewModel() {
         return file
     }
 }
+
+private const val s = "Describe your music"
 
 @Composable
 fun MusicGenerationScreen(context: Context) {
@@ -233,7 +275,11 @@ fun MusicGenerationScreen(context: Context) {
         // **提交按钮**
         Button(
             onClick = {
-                viewModel.uploadMusicAndGenerate(context, musicUri!!)
+                if (musicUri != null || textInput.isNotEmpty()) {
+                    viewModel.uploadMusicAndGenerate(context, musicUri, textInput)
+                } else {
+                    Toast.makeText(context, "Please select a music file or make text Input first.", Toast.LENGTH_SHORT).show()
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -247,17 +293,7 @@ fun MusicGenerationScreen(context: Context) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // **进度条**
-        if (viewModel.isGenerating.collectAsState().value) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                LinearProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color.Black,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Generating...", fontSize = 14.sp, fontStyle = FontStyle.Italic)
-            }
-        }
+        IndeterminateIndicator(viewModel)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -306,6 +342,21 @@ fun MusicGenerationScreen(context: Context) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun IndeterminateIndicator(viewModel: MusicGenViewModel) {
+    if (!viewModel.isGenerating.collectAsState().value) return
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        LinearProgressIndicator(
+            modifier = Modifier.width(64.dp),
+            color = Color.Blue,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text("Generating...", fontSize = 14.sp, fontStyle = FontStyle.Italic)
     }
 }
 

@@ -102,7 +102,7 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel:MusicViewModel = 
                 )
                 DropdownMenu(
                     text = "Scale: ${musicInfo.scale}",
-                    menuItemData = listOf("major", "minor", "blues", "dorian", "mixolydian"),
+                    menuItemData = listOf("major", "minor", "blues", "dorian","major_pentatonic","minor_pentatonic","harmonic_minor","melodic_minor","dorian","phrygian","lydian","mixolydian","locrian"),
                     OnClick = {
                         viewModel.updateScale(it)
                     }

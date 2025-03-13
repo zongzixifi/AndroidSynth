@@ -66,7 +66,7 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
     Surface(
         modifier = modifier
             .height( 300.dp),
-        color = MaterialTheme.colorScheme.onSurface,
+        color = MaterialTheme.colorScheme.onBackground,
         shape = RoundedCornerShape(15.dp),
     ) {
         Column(
@@ -170,9 +170,9 @@ fun KeyboardsBubble(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier
             .fillMaxHeight()
-            .padding(vertical = 15.dp, horizontal = 2.dp)
+            .padding(vertical = 0.dp, horizontal = 2.dp)
         ,
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.colorScheme.onSurface,
         shape = RoundedCornerShape(10.dp),
     ){
         Button(

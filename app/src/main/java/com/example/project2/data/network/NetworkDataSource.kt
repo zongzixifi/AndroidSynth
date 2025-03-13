@@ -46,7 +46,6 @@ object ChatAPI{
             init(null, trustAllCerts, java.security.SecureRandom())
         }
 
-
         OkHttpClient.Builder()
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0])
             .hostnameVerifier { _, _ -> true }  // 跳过 Hostname 验证

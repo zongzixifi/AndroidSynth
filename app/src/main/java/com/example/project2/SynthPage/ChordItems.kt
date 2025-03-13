@@ -167,7 +167,6 @@ fun ChordDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 选择时长（拍数）
                 Text("选择时长:")
                 DropdownSelector(
                     options = (1..16).map { it.toString() },

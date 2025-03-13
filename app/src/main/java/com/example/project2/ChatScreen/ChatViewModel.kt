@@ -52,7 +52,7 @@ class ChatViewModel : ViewModel() {
             "top_p" to  0.9,
         )
 
-        sendChatRequest(model = "braindamage", prompt = chatItem.chatText, options = options)
+        sendChatRequest(model = "Komorebi", prompt = chatItem.chatText, options = options)
     }
 
 

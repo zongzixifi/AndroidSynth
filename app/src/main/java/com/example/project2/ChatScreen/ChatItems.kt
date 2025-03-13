@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -115,6 +116,7 @@ fun InputBar(
                 },
                 modifier = modifier
                     .heightIn(min = 56.dp)
+                    .widthIn(max = 300.dp)
                     .padding(2.dp)
             )
             Spacer(Modifier.width(8.dp))
