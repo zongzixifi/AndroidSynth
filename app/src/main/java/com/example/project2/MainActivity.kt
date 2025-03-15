@@ -85,14 +85,10 @@ class MainActivity : ComponentActivity() {
         val metronomeViewModel: MetronomeViewModel by viewModels()
         copySoundFontToInternalStorage(this)
         val filepath = this.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
-        //startAudio()
         setContent {
             Project2Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-////                    ChatScreen(
-////                        modifier = Modifier.padding(innerPadding),
-////                        chatViewModel
-////                    )
+
                     if (filepath != null) {
                         NavgationGraph(
                             modifier = Modifier.padding(innerPadding),
@@ -102,11 +98,6 @@ class MainActivity : ComponentActivity() {
                             context = applicationContext
                         )
                     }
-//                    SynthScreen(
-//                         modifier = Modifier
-//                         .padding(innerPadding),
-//                         metronomeViewModel,
-//                    )
                 }
             }
         }

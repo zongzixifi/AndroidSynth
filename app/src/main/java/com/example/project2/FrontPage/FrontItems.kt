@@ -21,8 +21,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.project2.R
 
 @Composable
 fun ModelContainer(modifier: Modifier = Modifier, setter: ClassContainerSetter, onClick: () -> Unit = {}) {
@@ -65,9 +67,7 @@ data class ClassContainerSetter(
 @Composable
 private fun ModelContainerPrev() {
     val setter = ClassContainerSetter(
-        text = "Don'n know how to get start?\n" +
-                "\n" +
-                "Ask your AI assistant!",
+        text = stringResource(R.string.get_start),
         icon = Icons.Filled.Face,
         color = MaterialTheme.colorScheme.primary
     )

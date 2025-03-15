@@ -30,6 +30,8 @@ import com.example.project2.data.network.NetworkChatItem
 import com.google.gson.Gson
 import kotlinx.coroutines.Delay
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.io.IOException
 
 
@@ -41,6 +43,9 @@ class ChatViewModel : ViewModel() {
     val chatItems: State<List<ChatItem>> get() = _chatItems
     private val chatItem by chatItems
     private val count: Int get() = _chatItems.value.size
+
+    private val _isGenerating = MutableStateFlow(false)
+    val isGenerating: StateFlow<Boolean> = _isGenerating
 
     fun addChatItem(character: String, chatText: String) {
         val chatItem = ChatItem(id = count, character = character, chatText = chatText)
@@ -66,15 +71,18 @@ class ChatViewModel : ViewModel() {
                         chatText = this.response.trim() // 确保 `response` 不包含意外的空格或特殊字符
                     )
                 }
+                _isGenerating.value = true
 
                 val request = ChatRequest(model, prompt, stream = false, options)
                 val response = ChatAPI.retrofitService.generateChat(request)
                 Log.d("ChatAPI", "Response: ${Gson().toJson(response)}")
                 val resultData: ChatItem = response.toChatItem()
+                _isGenerating.value = false
                 _chatItems.value = _chatItems.value + resultData
 
             } catch (e: Exception) {
                 val chatItem = ChatItem(id = count, character = "bot", chatText = "network error")
+                _isGenerating.value = false
                 _chatItems.value = _chatItems.value + chatItem
             }
         }

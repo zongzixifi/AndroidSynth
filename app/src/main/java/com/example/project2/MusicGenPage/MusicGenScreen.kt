@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,16 +55,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.project2.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -78,9 +82,9 @@ class MusicGenViewModel : ViewModel() {
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(300, TimeUnit.SECONDS)
-        .readTimeout(300, TimeUnit.SECONDS)
-        .writeTimeout(300, TimeUnit.SECONDS)
+        .connectTimeout(3000, TimeUnit.SECONDS)
+        .readTimeout(5000, TimeUnit.SECONDS)
+        .writeTimeout(3000, TimeUnit.SECONDS)
         .build()
 
     fun uploadMusicAndGenerate(context: Context, musicUri: Uri?, prompt: String) {
@@ -88,17 +92,20 @@ class MusicGenViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = "http://172.25.54.61:5050/generate"  // Android 访问本机的方式
+                val url = "http://207.148.111.64:12525/funk_generate"  // Android 访问本机的方式
                 _generatedMusicUri.value = null
-
+                //val jsonPrompt = """{"prompt": "$prompt"}"""
+                //val jsonRequestBody = jsonPrompt.toRequestBody("application/json".toMediaType())
                 val requestBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("prompt", prompt)  // 添加文本 prompt
+                    .addFormDataPart("prompt", prompt)  // 添加 prompt
 
                 // **如果用户上传了音频**
                 musicUri?.let {
                     val file = uriToFile(context, it)
-                    val requestBody = file.asRequestBody("audio/wav".toMediaTypeOrNull())
-                    requestBuilder.addFormDataPart("audio", file.name, requestBody)
+                    run {
+                        val requestBody = file.asRequestBody("audio/wav".toMediaTypeOrNull())
+                        requestBuilder.addFormDataPart("audio", file.name, requestBody)
+                    }
                 }
 
                 val request = Request.Builder()
@@ -193,6 +200,15 @@ fun MusicGenerationScreen(context: Context) {
         }
     }
 
+    LaunchedEffect(generatedIsPlaying) {
+        while (generatedIsPlaying) {
+            generatedMediaPlayer?.let { player ->
+                generatedProgress = player.currentPosition / player.duration.toFloat()
+            }
+            delay(500) // 每 500ms 更新一次进度
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -202,7 +218,7 @@ fun MusicGenerationScreen(context: Context) {
     ) {
         // **输入区域标题**
         Text(
-            text = "Input",
+            text = stringResource(R.string.input),
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.Start)
         )
@@ -218,7 +234,7 @@ fun MusicGenerationScreen(context: Context) {
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
         ) {
-            Text(text = "Import your raw music", color = Color.Black)
+            Text(text = stringResource(R.string.import_your_raw_music), color = Color.Black)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(Icons.Filled.Folder, contentDescription = "Import", tint = Color.Black)
         }
@@ -262,7 +278,7 @@ fun MusicGenerationScreen(context: Context) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
-            placeholder = { Text("Describe your music") },
+            placeholder = { Text(stringResource(R.string.describe_your_music)) },
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
@@ -278,7 +294,8 @@ fun MusicGenerationScreen(context: Context) {
                 if (musicUri != null || textInput.isNotEmpty()) {
                     viewModel.uploadMusicAndGenerate(context, musicUri, textInput)
                 } else {
-                    Toast.makeText(context, "Please select a music file or make text Input first.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,
+                        context.getString(R.string.please_select_a_music_file_or_make_text_input_first), Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier
@@ -287,7 +304,7 @@ fun MusicGenerationScreen(context: Context) {
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
         ) {
-            Text(text = "Submit and generate", color = Color.White)
+            Text(text = stringResource(R.string.submit_and_generate), color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -308,7 +325,7 @@ fun MusicGenerationScreen(context: Context) {
             }
 
             Text(
-                text = "Generated Music Output",
+                text = stringResource(R.string.generated_music_output),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.Start)
             )

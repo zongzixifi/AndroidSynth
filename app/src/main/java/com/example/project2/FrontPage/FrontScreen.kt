@@ -13,26 +13,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.project2.R
 
 @Composable
 fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Unit ={}, onClickJumpToSynth: () -> Unit ={}, onClickJumpToMusicGen: () -> Unit ={}) {
     val ClassContainersSetterChatPage = ClassContainerSetter(
-        text = "Don'n know how to get start?\n" +
-                "\n" +
-                "Ask your AI assistant!",
+        text = stringResource(R.string.get_start),
         icon = Icons.Filled.Face,
         color = MaterialTheme.colorScheme.primary
     )
 
     val ClassContainersSetterMusicPage = ClassContainerSetter(
-        text = "start with demo music",
+        text = stringResource(R.string.start_with_demo_music),
         icon = Icons.Filled.Create,
         color = MaterialTheme.colorScheme.secondaryContainer
     )
     val ClassContainersSetterGeneratePage = ClassContainerSetter(
-        text = "start with only text...",
+        text = stringResource(R.string.start_with_only_text),
         icon = Icons.Filled.Edit,
         color = MaterialTheme.colorScheme.tertiaryContainer
     )
