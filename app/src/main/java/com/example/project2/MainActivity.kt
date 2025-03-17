@@ -83,8 +83,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         val metronomeViewModel: MetronomeViewModel by viewModels()
+
         copySoundFontToInternalStorage(this)
-        val filepath = this.getExternalFilesDir(Environment.DIRECTORY_MUSIC)
+        val musicDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "demoMusic")
+        if (!musicDir.exists()) {
+            musicDir.mkdirs()
+        }
+        val filepath = musicDir
+
         setContent {
             Project2Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -108,5 +114,3 @@ class MainActivity : ComponentActivity() {
         FluidSynthManager.shutdown()
     }
 }
-
-

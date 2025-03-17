@@ -216,7 +216,7 @@ fun MusicGenerationScreen(context: Context) {
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // **输入区域标题**
+        // 输入区域标题
         Text(
             text = stringResource(R.string.input),
             fontWeight = FontWeight.Bold,
@@ -225,7 +225,7 @@ fun MusicGenerationScreen(context: Context) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // **导入音乐按钮**
+        // 导入音乐按钮
         Button(
             onClick = { musicPickerLauncher.launch("audio/*") },
             modifier = Modifier
@@ -241,7 +241,7 @@ fun MusicGenerationScreen(context: Context) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // **播放音乐的进度条**
+        // 播放音乐的进度条
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -271,7 +271,7 @@ fun MusicGenerationScreen(context: Context) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // **文本输入框**
+        // 文本输入框
         TextField(
             value = textInput,
             onValueChange = { textInput = it },
@@ -288,7 +288,7 @@ fun MusicGenerationScreen(context: Context) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // **提交按钮**
+        // 提交按钮
         Button(
             onClick = {
                 if (musicUri != null || textInput.isNotEmpty()) {
@@ -309,7 +309,7 @@ fun MusicGenerationScreen(context: Context) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // **进度条**
+        // 进度条
         IndeterminateIndicator(viewModel)
 
         Spacer(modifier = Modifier.height(16.dp))
