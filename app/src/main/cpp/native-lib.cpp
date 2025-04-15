@@ -574,7 +574,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_turnMetronomeON(JNIEnv *env, jobject) {
     ifMetronomeON = true;
-    __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "StartRecording");
+    __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "MetronomeON");
 }
 
 //关闭节拍器
@@ -582,7 +582,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_turnMetronomeOff(JNIEnv *env, jobject) {
     ifMetronomeON = false;
-    __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "StartRecording");
+    __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "StartMetronomeOff");
 }
 
 //开始录制
