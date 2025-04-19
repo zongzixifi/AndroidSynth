@@ -60,7 +60,7 @@ fun ModelContainer(modifier: Modifier = Modifier, setter: ClassContainerSetter, 
 data class ClassContainerSetter(
     val text: String,
     val icon: ImageVector,
-    val color: Color
+    val color: Color,
 )
 
 @Preview
