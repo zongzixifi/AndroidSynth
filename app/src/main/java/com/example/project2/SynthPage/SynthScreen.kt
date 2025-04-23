@@ -1,19 +1,31 @@
 package com.example.project2.SynthPage
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.project2.FluidSynthManager
@@ -41,24 +53,53 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
             .fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column (
-            modifier = Modifier,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ){
+        DualLayerScreen(metronomeViewModel = metronomeViewModel, filepath = filepath)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath : File) {
+    val sheetState = rememberBottomSheetScaffoldState()
+    BottomSheetScaffold(
+        scaffoldState = sheetState,
+        sheetPeekHeight = 80.dp, // 默认展示部分高度
+        sheetContent = {
+            // 上层滑动层
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                repeat(20) {
+                    Spacer(modifier = Modifier.padding(20.dp))
+                    DrumSet()
+                    Spacer(Modifier.padding(2.dp))
+                    VerticalReorderList()
+                }
+            }
+        }
+    ) {innerPadding ->
+        // 底层背景页面
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(Color.Gray),
+        ) {
             LinearDeterminateIndicator(viewModel = metronomeViewModel)
-            Spacer(Modifier.padding(2.dp))
+            Spacer(Modifier.padding(5.dp))
             Buttons(filepath =  filepath, viewModel = metronomeViewModel)
-            Spacer(Modifier.padding(2.dp))
-            BasicMusicInfoSet()
-            Spacer(Modifier.padding(2.dp))
+            Spacer(Modifier.padding(5.dp))
+            BasicMusicInfoSet(modifier = Modifier.weight(1f))
+            Spacer(Modifier.padding(5.dp))
             Keyboards( modifier = Modifier
-                .heightIn(min = 10.dp, max = 300.dp),
+                .weight(3f)
+                .fillMaxHeight(),
             )
             Spacer(Modifier.padding(2.dp))
-            DrumSet()
-            Spacer(Modifier.padding(2.dp))
-            VerticalReorderList()
         }
     }
 }
