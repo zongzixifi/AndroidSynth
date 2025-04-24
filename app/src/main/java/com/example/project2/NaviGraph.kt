@@ -18,8 +18,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.project2.MusicGenPage.MusicGenerationScreen
+import com.example.project2.SynthPage.DrumViewModel
+import com.example.project2.SynthPage.FullscreenDrumScreen
 import com.example.project2.SynthPage.MetronomeViewModel
 import com.example.project2.SynthPage.SynthScreen
 import kotlinx.serialization.Serializable
@@ -38,6 +41,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
 {
     val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentNavBackStackEntry?.destination?.route ?: startDestination
+    val drumViewModel: DrumViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -58,8 +62,16 @@ fun NavgationGraph(modifier: Modifier = Modifier,
             SynthScreen(
                 modifier = Modifier,
                 metronomeViewModel = metronomeViewModel,
-                filepath = filepath
-            )
+                filepath = filepath,
+                onClickJumpToFullscreenDrum = {navController.navigateSingleTopTo(FullscreenDrumPage)},
+                drumViewModel = drumViewModel
+                )
+        }
+        composable<FullscreenDrumPage> {
+            FullscreenDrumScreen(
+                onClickBackToFullscreenDrum = {navController.navigateSingleTopTo(SynthScreenPage)},
+                drumViewModel = drumViewModel
+                )
         }
         composable<MusicGenScreenPage> {
             MusicGenerationScreen(context)
