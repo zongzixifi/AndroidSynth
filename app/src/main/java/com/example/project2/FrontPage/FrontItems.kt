@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.project2.R
 
+// 选块容器，包含每个页面的索引
 @Composable
 fun ModelContainer(modifier: Modifier = Modifier, setter: ClassContainerSetter, onClick: () -> Unit = {}) {
     Surface(

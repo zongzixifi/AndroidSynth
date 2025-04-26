@@ -39,6 +39,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
+import com.example.project2.R
+import kotlin.math.max
+import kotlin.math.round
 
 
 open class DrumViewModel : ViewModel() {
@@ -73,12 +88,13 @@ fun DrumEachClapItem(
     clapNum: Int,
     note: Int,
     svel :Int,
-    drumViewModel: DrumViewModel
+    drumViewModel: DrumViewModel,
+    buttonSize: Dp
 ) {
     val timeNum = clapNum * 4
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         repeat(4) { offset ->
@@ -90,30 +106,41 @@ fun DrumEachClapItem(
                 isTriggered = isTriggered,
                 onToggle = {
                     drumViewModel.toggleDrumNote(timeNum + offset, note, svel)
-                }
+                },
+                buttonSize = buttonSize
             )
         }
     }
 }
 
-@Composable
-fun DrumEachDrumSetItem(modifier: Modifier = Modifier,  clapList : List<Int>, note : Int, svel :Int, Drums:String, drumViewModel: DrumViewModel) {
 
-    Row (
+@Composable
+fun DrumEachDrumSetItem(
+    modifier: Modifier = Modifier,
+    clapList: List<Int>,
+    note: Int,
+    svel: Int,
+    Drums: String,
+    drumViewModel: DrumViewModel,
+    buttonSize: Dp = 40.dp,
+) {
+    Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
-    ){
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
         Text(
             modifier = Modifier.width(40.dp),
             text = Drums
         )
-        Spacer(Modifier.padding(8.dp))
+        Spacer(Modifier.width(5.dp))
         clapList.forEach { clapNum ->
             DrumEachClapItem(
                 clapNum = clapNum,
                 note = note,
                 svel = svel,
-                drumViewModel = drumViewModel
+                drumViewModel = drumViewModel,
+                buttonSize = buttonSize
             )
         }
     }
@@ -121,68 +148,88 @@ fun DrumEachDrumSetItem(modifier: Modifier = Modifier,  clapList : List<Int>, no
 
 @Composable
 fun DrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) {
-    Card (
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        ),
-    ){
-        Column(
-            modifier = Modifier.padding(horizontal = 2.dp)
-        ) {
-            Spacer(Modifier.padding(2.dp))
-            DrumEachDrumSetItem(
-                modifier = Modifier,
-                clapList = listOf(0, 1, 2, 3),
-                note = 35,
-                svel = 100,
-                Drums = "Boom",
-                drumViewModel = drumViewModel
-            )
-            Spacer(Modifier.padding(2.dp))
-            DrumEachDrumSetItem(
-                modifier = Modifier,
-                clapList = listOf(0, 1, 2, 3),
-                note = 38,
-                svel = 100,
-                Drums = "Clap",
-                drumViewModel = drumViewModel
-            )
-            Spacer(Modifier.padding(2.dp))
-            DrumEachDrumSetItem(
-                modifier = Modifier,
-                clapList = listOf(0, 1, 2, 3),
-                note = 45,
-                svel = 100,
-                Drums = "Tom",
-                drumViewModel = drumViewModel
-            )
-            Spacer(Modifier.padding(2.dp))
-            DrumEachDrumSetItem(
-                modifier = Modifier,
-                clapList = listOf(0, 1, 2, 3),
-                note = 51,
-                svel = 100,
-                Drums = "Crash",
-                drumViewModel = drumViewModel
-            )
-            Spacer(Modifier.padding(2.dp))
-            DrumEachDrumSetItem(
-                modifier = Modifier,
-                clapList = listOf(0, 1, 2, 3),
-                note = 42,
-                svel = 100,
-                Drums = "Hats",
-                drumViewModel = drumViewModel
-            )
+    BoxWithConstraints(modifier = modifier) {
+        val totalWidth = maxWidth
+        val totalHeight = maxHeight
+        val rowCount = 6
+        val columnCount = 16
+        var buttonSize = (totalWidth / columnCount) - 4.dp
+        if (buttonSize < 40.dp) buttonSize = 40.dp
+        val eachHeight = totalHeight / rowCount
+        val spacerLength = eachHeight - buttonSize
 
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp
+            ),
+        ) {
+            LazyRow(
+                modifier = Modifier.padding(8.dp).fillMaxWidth()
+            ) {
+                item {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 2.dp).fillMaxSize()
+                    ) {
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 35,
+                            svel = 100,
+                            Drums = "Boom",
+                            drumViewModel = drumViewModel,
+                            buttonSize = buttonSize
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 38,
+                            svel = 100,
+                            Drums = "Clap",
+                            drumViewModel = drumViewModel,
+                            buttonSize = buttonSize
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 45,
+                            svel = 100,
+                            Drums = "Tom",
+                            drumViewModel = drumViewModel,
+                            buttonSize = buttonSize
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 51,
+                            svel = 100,
+                            Drums = "Crash",
+                            drumViewModel = drumViewModel,
+                            buttonSize = buttonSize
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 42,
+                            svel = 100,
+                            Drums = "Hats",
+                            drumViewModel = drumViewModel,
+                            buttonSize = buttonSize
+                        )
+                    }
+                }
+            }
         }
     }
 }
-
 @Preview
 @Composable
 private fun DrumPrev(modifier: Modifier = Modifier.fillMaxSize()) {
@@ -201,19 +248,21 @@ fun ToggleButtonWithColor(
     textStart: String,
     textend: String,
     isTriggered: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    buttonSize: Dp
 ) {
-    Button(
-        shape = RectangleShape,
-        onClick = {onToggle()},
+    Box(
         modifier = modifier
-            .size(width = 18.dp, height = 40.dp)
-            .padding(1.dp)
-        ,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isTriggered) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-        )
+            .size(buttonSize)
+            .clickable { onToggle() }
+            .padding(1.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = if (isTriggered) textStart else textend)
+        val painter = if (isTriggered) painterResource(id = R.drawable.drum_key_selected) else painterResource(id = R.drawable.drum_key_unselected)
+        Image(
+            painter = painter,
+            contentDescription = null,
+            modifier = Modifier.size(buttonSize).clip(shape = RoundedCornerShape(5.dp)),
+        )
     }
 }

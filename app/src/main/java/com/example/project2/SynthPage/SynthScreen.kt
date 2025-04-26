@@ -131,7 +131,7 @@ fun FullscreenDrumScreen(
         }
     }
     Row(modifier = Modifier.fillMaxSize()) {
-        DrumSet(drumViewModel = drumViewModel)
+        DrumSet(drumViewModel = drumViewModel, modifier = Modifier.fillMaxSize())
         Button(
             onClick = onClickBackToFullscreenDrum,
             modifier = Modifier.padding(8.dp)
