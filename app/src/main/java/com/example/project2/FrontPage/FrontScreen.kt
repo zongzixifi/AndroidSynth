@@ -42,56 +42,91 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.project2.R
 import kotlinx.coroutines.launch
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
+
+
 
 @Composable
-fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Unit ={}, onClickJumpToSynth: () -> Unit ={}, onClickJumpToMusicGen: () -> Unit ={}) {
+fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Unit = {}, onClickJumpToSynth: () -> Unit = {}, onClickJumpToMusicGen: () -> Unit = {}) {
     val ClassContainersSetterChatPage = ClassContainerSetter(
         text = stringResource(R.string.get_start),
-        icon = Icons.Filled.Face,
-        color = MaterialTheme.colorScheme.primary
+        imageResId = R.drawable.deepseek
     )
 
     val ClassContainersSetterMusicPage = ClassContainerSetter(
         text = stringResource(R.string.start_with_demo_music),
-        icon = Icons.Filled.Create,
-        color = MaterialTheme.colorScheme.secondaryContainer
+        imageResId = R.drawable.deepseek
     )
     val ClassContainersSetterGeneratePage = ClassContainerSetter(
         text = stringResource(R.string.start_with_only_text),
-        icon = Icons.Filled.Edit,
-        color = MaterialTheme.colorScheme.tertiaryContainer
+        imageResId = R.drawable.deepseek
     )
 
     val items = listOf(ClassContainersSetterChatPage, ClassContainersSetterMusicPage, ClassContainersSetterGeneratePage)
 
-    Surface(
-        modifier = modifier
-            .fillMaxSize(),
-        color = MaterialTheme.colorScheme.tertiary
-    ) {
-        Column (
-            modifier = Modifier,
+    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Image(painter = painterResource(id = R.drawable.test), contentDescription = null, modifier = Modifier.fillMaxSize(),contentScale = ContentScale.Fit,
+            colorFilter = ColorFilter.tint(
+                color = Color.Black.copy(alpha = 0.3f),
+                blendMode = BlendMode.Multiply
+            ))
+        Column(
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.weight(1f))
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
-                contentDescription = ""
+            Text(
+                text = "选择一种方式，\n开始创作。",
+                style = TextStyle(
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = Color.White
             )
             Spacer(modifier = Modifier.height(100.dp))
             CarouselSelector(
                 modifier = Modifier,
                 items = items,
-                onItemClick = { index, item ->
-                    when (index) {
+                pagerState = pagerState,
+                onItemClick = { _, _ -> }
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                onClick = {
+                    val currentPage = pagerState.currentPage
+                    when (currentPage) {
                         0 -> onClickJumpToAssistant()
                         1 -> onClickJumpToSynth()
                         2 -> onClickJumpToMusicGen()
                     }
-                }
-            )
-            Spacer(modifier = Modifier.weight(2f))
+                },
+                modifier = Modifier
+                    .width(600.dp)
+                    .height(70.dp)
+                    .padding(horizontal = 32.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(30.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = colorResource(id=R.color.green) )
+            ) {
+                Text(
+                    text = "继续",
+                    color = Color.White ,
+                    style = TextStyle(
+                            fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                )
+            }
         }
     }
 }
@@ -99,20 +134,20 @@ fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Uni
 @Composable
 fun CarouselSelector(modifier: Modifier,
                      items: List<ClassContainerSetter>,
+                     pagerState: androidx.compose.foundation.pager.PagerState,
                      onItemClick:  (Int, ClassContainerSetter) -> Unit) {
-    val pagerState = rememberPagerState(initialPage = 1, pageCount = {3})
     val currentPage = pagerState.currentPage
 
     HorizontalPager(
         beyondViewportPageCount = items.size,
         state = pagerState,
-        contentPadding = PaddingValues(horizontal = 64.dp),
+        contentPadding = PaddingValues(horizontal = 100.dp),
         pageSpacing = 16.dp,
         modifier = modifier
             .fillMaxWidth()
             .padding(10.dp)
     ) { page ->
-        val scale = if (page == currentPage) 1.2f else 0.8f
+        val scale = if (page == currentPage) 1.1f else 0.9f
         val item = items[page]
 
         ModelContainer(
@@ -125,8 +160,10 @@ fun CarouselSelector(modifier: Modifier,
     }
 }
 
+
 @Preview
 @Composable
 private fun FrontScreenPrev() {
     FrontScreen()
 }
+

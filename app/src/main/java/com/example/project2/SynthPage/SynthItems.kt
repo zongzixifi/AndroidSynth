@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,14 +41,50 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project2.FluidSynthManager
+import com.example.project2.R
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
+
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+import com.example.project2.SynthPage.KeyboardsItem
+import com.example.project2.SynthPage.MusicViewModel
+import com.example.project2.SynthPage.getMidiFromRootNote
+import com.example.project2.SynthPage.getScaleNotes
+import kotlinx.coroutines.delay
 
 
-@OptIn(ExperimentalComposeUiApi::class)
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewModel()) {
     val musicInfo by viewModel.musicInfo.collectAsState()
@@ -68,7 +106,7 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
     Surface(
         modifier = modifier
             .height( 300.dp),
-        color = MaterialTheme.colorScheme.onBackground,
+        color = colorResource(id = R.color.gray),
         shape = RoundedCornerShape(15.dp),
     ) {
         Column(
@@ -80,15 +118,39 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                 modifier = Modifier.height(5.dp).weight(1f),
                 value = keyInterval.toFloat(),
                 valueRange = 1f..24f,
-                steps = 24,
-                onValueChange = { keyInterval = it.toInt()}
+//                steps = 24,
+                onValueChange = { keyInterval = it.toInt()},
+                thumb = {
+                    Image(
+                        painter = painterResource(id = R.drawable.o),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.White,
+                    activeTrackColor = Color(0xFFAEB9D4),
+                    inactiveTrackColor = Color(0xFFCCCCCC)
+                )
             )
             Slider(
                 modifier = Modifier.height(5.dp).weight(1f),
                 value = octave.toFloat(),
                 valueRange = 1f..8f,
-                steps = 8,
-                onValueChange = { octave = it.toInt()}
+//                steps = 8,
+                onValueChange = { octave = it.toInt()},
+                thumb = {
+                    Image(
+                        painter = painterResource(id = R.drawable.o),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.White,
+                    activeTrackColor = Color(0xFFAEB9D4),
+                    inactiveTrackColor = Color(0xFFCCCCCC)
+                )
             )
             Box(
                 modifier = Modifier

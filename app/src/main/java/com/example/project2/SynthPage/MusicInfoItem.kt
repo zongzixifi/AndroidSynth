@@ -62,30 +62,72 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel: MusicViewModel =
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+//            Row(
+//                modifier = Modifier,
+//                horizontalArrangement = Arrangement.spacedBy(1.dp)
+//            ) {
+//                Button(
+//                    onClick = {
+//                        viewModel.updateBar(1)
+//                    }
+//                ) { Text(text = "1 BAR") }
+//                Button(
+//                    onClick = {
+//                        viewModel.updateBar(2)
+//                    }
+//                ) { Text(text = "2 BAR") }
+//                Button(
+//                    onClick = {
+//                        viewModel.updateBar(4)
+//                    }
+//                ) { Text(text = "4 BAR") }
+//                Button(
+//                    onClick = {
+//                        viewModel.updateBar(8)
+//                    }
+//                ) { Text(text = "8 BAR") }
+//            }
+
+
             Row(
-                modifier = Modifier,
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp), // 添加水平内边距
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Button(
-                    onClick = {
-                        viewModel.updateBar(1)
-                    }
-                ) { Text(text = "1 BAR") }
-                Button(
-                    onClick = {
-                        viewModel.updateBar(2)
-                    }
-                ) { Text(text = "2 BAR") }
-                Button(
-                    onClick = {
-                        viewModel.updateBar(4)
-                    }
-                ) { Text(text = "4 BAR") }
-                Button(
-                    onClick = {
-                        viewModel.updateBar(8)
-                    }
-                ) { Text(text = "8 BAR") }
+                // 每个标签容器宽度与下方PickerWheel对应
+                Box(
+                    modifier = Modifier
+                        .width(80.dp) // 对应前三个PickerWheel的宽度
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("BPM")
+                }
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("CLAP")
+                }
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("ROOT")
+                }
+                Box(
+                    modifier = Modifier
+                        .width(120.dp) // 对应最后一个PickerWheel的宽度
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("SCALE")
+                }
             }
 
             Row(
