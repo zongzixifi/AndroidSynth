@@ -16,9 +16,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FitScreen
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,10 +34,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.project2.FluidSynthManager
+import com.example.project2.R
 import com.example.project2.ui.theme.Project2Theme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -77,12 +84,14 @@ fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: Metronome
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-
-                Button(
+                IconButton(
                     onClick = onClickJumpToFullscreenDrum,
-                    modifier = Modifier.align(Alignment.End).padding(8.dp)
+                    modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("进入横屏鼓编辑器")
+                    Icon(
+                        imageVector = Icons.Filled.FitScreen,
+                        contentDescription = "打开全屏打击垫"
+                    )
                 }
                 Spacer(modifier = Modifier.padding(20.dp))
                 DrumSet(drumViewModel = drumViewModel)
@@ -98,15 +107,14 @@ fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: Metronome
                 .fillMaxSize()
                 .background(Color.Gray),
         ) {
-            LinearDeterminateIndicator(viewModel = metronomeViewModel)
-            Spacer(Modifier.padding(5.dp))
-            Buttons(filepath =  filepath, viewModel = metronomeViewModel)
-            Spacer(Modifier.padding(5.dp))
-            BasicMusicInfoSet(modifier = Modifier.weight(1f))
-            Spacer(Modifier.padding(5.dp))
+            LinearDeterminateIndicator(viewModel = metronomeViewModel, modifier = Modifier.padding(top = 10.dp))
+            Buttons(filepath =  filepath, viewModel = metronomeViewModel, modifier = Modifier.padding(horizontal = 28.dp))
+            BasicMusicInfoSet(modifier = Modifier.weight(1f).padding(start = 28.dp, end = 28.dp, top = 28.dp))
             Keyboards( modifier = Modifier
                 .weight(3f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .padding(28.dp)
+                ,
             )
             Spacer(Modifier.padding(2.dp))
         }
@@ -131,7 +139,7 @@ fun FullscreenDrumScreen(
         }
     }
     Row(modifier = Modifier.fillMaxSize()) {
-        DrumSet(drumViewModel = drumViewModel, modifier = Modifier.fillMaxSize())
+        DrumSet(drumViewModel = drumViewModel)
         Button(
             onClick = onClickBackToFullscreenDrum,
             modifier = Modifier.padding(8.dp)

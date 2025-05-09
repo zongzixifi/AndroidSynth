@@ -1,11 +1,13 @@
 package com.example.project2.FrontPage
-
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Face
@@ -22,46 +24,63 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.project2.R
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
-// 选块容器，包含每个页面的索引
 @Composable
 fun ModelContainer(modifier: Modifier = Modifier, setter: ClassContainerSetter, onClick: () -> Unit = {}) {
-    Surface(
-         modifier=modifier
-             .heightIn(min = 0.dp, max = 250.dp)
-             .clickable(onClick = onClick)
-             .shadow(elevation = 10.dp)
-             .padding(horizontal = 5.dp),
-         shape = RoundedCornerShape(16.dp),
-        color = setter.color
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 5.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.size(150.dp)
         ) {
-            Text(
+            Surface(
                 modifier = Modifier
+                    .fillMaxSize()
+                    .shadow(elevation = 10.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(30.dp),
+                color = Color.White
+            ) {
+                // 添加一个空的 Box 作为 Surface 的内容
+                Box(modifier = Modifier.fillMaxSize())
+            }
+            Image(
+                painter = painterResource(id = setter.imageResId),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
                     .align(Alignment.Center),
-                text = setter.text
-            )
-            Icon(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(horizontal = 5.dp, vertical = 5.dp),
-                imageVector = setter.icon,
-                contentDescription = null
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
             )
         }
+        Text(
+            modifier = Modifier
+                .padding(top = 16.dp),
+            text = setter.text,
+            style = TextStyle(
+                fontSize = 16.sp,
+            ),
+            color = Color.White
+        )
     }
 }
 
 data class ClassContainerSetter(
     val text: String,
-    val icon: ImageVector,
-    val color: Color,
+    val imageResId: Int
 )
 
 @Preview
@@ -69,8 +88,7 @@ data class ClassContainerSetter(
 private fun ModelContainerPrev() {
     val setter = ClassContainerSetter(
         text = stringResource(R.string.get_start),
-        icon = Icons.Filled.Face,
-        color = MaterialTheme.colorScheme.primary
+        imageResId = R.drawable.deepseek
     )
     ModelContainer(setter = setter, onClick = {})
 }
