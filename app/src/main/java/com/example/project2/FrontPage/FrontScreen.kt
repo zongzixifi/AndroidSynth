@@ -75,7 +75,7 @@ fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Uni
     val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
 
     Box(modifier = modifier.fillMaxSize()) {
-        Image(painter = painterResource(id = R.drawable.test), contentDescription = null, modifier = Modifier.fillMaxSize(),contentScale = ContentScale.Fit,
+        Image(painter = painterResource(id = R.drawable.test), contentDescription = null, modifier = Modifier.fillMaxSize(),contentScale = ContentScale.FillHeight,
             colorFilter = ColorFilter.tint(
                 color = Color.Black.copy(alpha = 0.3f),
                 blendMode = BlendMode.Multiply
@@ -101,7 +101,7 @@ fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Uni
                 pagerState = pagerState,
                 onItemClick = { _, _ -> }
             )
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(2f))
             Button(
                 onClick = {
                     val currentPage = pagerState.currentPage
@@ -127,6 +127,7 @@ fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Uni
                 )
                 )
             }
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

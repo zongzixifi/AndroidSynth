@@ -117,7 +117,7 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
             Slider(
                 modifier = Modifier.height(5.dp).weight(1f),
                 value = keyInterval.toFloat(),
-                valueRange = 1f..24f,
+                valueRange = 5f..12f,
 //                steps = 24,
                 onValueChange = { keyInterval = it.toInt()},
                 thumb = {
