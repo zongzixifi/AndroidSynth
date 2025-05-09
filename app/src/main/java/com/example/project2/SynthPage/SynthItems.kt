@@ -155,7 +155,7 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
             Box(
                 modifier = Modifier
                     .weight(6f)
-                    .padding(vertical = 5.dp)
+                    .padding(vertical = 5.dp, horizontal = 10.dp)
                     .fillMaxWidth()
                     .onGloballyPositioned { layoutCoordinates ->
                         componentSize = layoutCoordinates.size

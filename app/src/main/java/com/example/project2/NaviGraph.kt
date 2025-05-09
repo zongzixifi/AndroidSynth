@@ -63,13 +63,6 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                 modifier = Modifier,
                 metronomeViewModel = metronomeViewModel,
                 filepath = filepath,
-                onClickJumpToFullscreenDrum = {navController.navigateSingleTopTo(FullscreenDrumPage)},
-                drumViewModel = drumViewModel
-                )
-        }
-        composable<FullscreenDrumPage> {
-            FullscreenDrumScreen(
-                onClickBackToFullscreenDrum = {navController.navigateSingleTopTo(SynthScreenPage)},
                 drumViewModel = drumViewModel
                 )
         }

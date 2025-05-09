@@ -52,7 +52,7 @@ open class MetronomeViewModel : ViewModel() {
             while (true) {
                 val newCount = FluidSynthManager.getCount() // 调用 C++ 获取最新 count
                 _count.value = newCount
-                delay(100) // 每 100ms 轮询一次
+                delay(2) // 每 100ms 轮询一次
             }
         }
     }

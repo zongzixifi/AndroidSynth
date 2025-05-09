@@ -192,7 +192,7 @@ fun LinearDeterminateIndicator(
 
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = tween(durationMillis = 300, easing = LinearEasing) // 300ms 平滑过渡
+        animationSpec = tween(durationMillis = 100, easing = LinearEasing) // 300ms 平滑过渡
     )
 
 

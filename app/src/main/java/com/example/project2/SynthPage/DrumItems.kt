@@ -42,6 +42,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import android.util.Log
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.ui.res.colorResource
 
 
@@ -65,6 +68,17 @@ open class DrumViewModel : ViewModel() {
         }
     }
 
+    fun clearAllDrumNotes() {
+        val currentMap = _drumStateMap.value
+        for ((key, value) in currentMap) {
+            if (value) {
+                val (timeNum, note) = key
+                FluidSynthManager.delDrumNote(note, timeNum)
+            }
+        }
+        _drumStateMap.value = emptyMap()
+    }
+
     fun isNoteTriggered(timeNum: Int, note: Int): Boolean {
         return _drumStateMap.value[timeNum to note] ?: false
     }
@@ -81,12 +95,6 @@ fun DrumEachClapItem(
     triggeredColorRes: Int
 ) {
     val timeNum = clapNum * 4
-//    val drumUnTriggeredColors = listOf(
-//        R.color.d1,  // offset=0 → d1
-//        R.color.d2,  // offset=1 → d2
-//        R.color.d3,  // offset=2 → d3
-//        R.color.d4   // offset=3 → d4
-//    )
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -121,7 +129,7 @@ fun DrumEachDrumSetItem(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Image(
             modifier = Modifier
@@ -156,9 +164,10 @@ fun DrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) {
         ),
     ){
         Column(
-            modifier = Modifier.padding(horizontal = 2.dp)
+            modifier = Modifier
+                .padding(horizontal = 2.dp, vertical = 4.dp).fillMaxWidth()
         ) {
-            Spacer(Modifier.padding(2.dp))
+            Spacer(Modifier.padding(4.dp))
             DrumEachDrumSetItem(
                 modifier = Modifier,
                 clapList = listOf(0, 1, 2, 3),
@@ -168,7 +177,7 @@ fun DrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) {
                 drumViewModel = drumViewModel,
                 triggeredColorRes = R.color.d1
             )
-            Spacer(Modifier.padding(2.dp))
+            Spacer(Modifier.padding(4.dp))
             DrumEachDrumSetItem(
                 modifier = Modifier,
                 clapList = listOf(0, 1, 2, 3),
@@ -209,6 +218,91 @@ fun DrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) {
                 triggeredColorRes = R.color.d5
             )
 
+        }
+    }
+}
+
+@Composable
+fun lazyRowDrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) {
+    BoxWithConstraints(modifier = modifier) {
+        val totalWidth = maxWidth
+        val totalHeight = maxHeight
+        val rowCount = 6
+        val columnCount = 16
+        var buttonSize = (totalWidth / columnCount) - 4.dp
+        if (buttonSize < 40.dp) buttonSize = 40.dp
+        val eachHeight = totalHeight / rowCount
+        val spacerLength = eachHeight - buttonSize
+
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp
+            ),
+        ) {
+            LazyRow(
+                modifier = Modifier.padding(8.dp).fillMaxWidth()
+            ) {
+                item {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 2.dp).fillMaxSize()
+                    ) {
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 35,
+                            svel = 100,
+                            drumIconResId = R.drawable.d1,
+                            drumViewModel = drumViewModel,
+                            triggeredColorRes = R.color.d1
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 38,
+                            svel = 100,
+                            drumIconResId = R.drawable.d2,
+                            drumViewModel = drumViewModel,
+                            triggeredColorRes = R.color.d2
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 45,
+                            svel = 100,
+                            drumIconResId = R.drawable.d3,
+                            drumViewModel = drumViewModel,
+                            triggeredColorRes = R.color.d3
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 51,
+                            svel = 100,
+                            drumIconResId = R.drawable.d4,
+                            drumViewModel = drumViewModel,
+                            triggeredColorRes = R.color.d4
+                        )
+                        Spacer(Modifier.height(spacerLength))
+                        DrumEachDrumSetItem(
+                            modifier = Modifier,
+                            clapList = listOf(0, 1, 2, 3),
+                            note = 42,
+                            svel = 100,
+                            drumIconResId = R.drawable.d5,
+                            drumViewModel = drumViewModel,
+                            triggeredColorRes = R.color.d5
+                        )
+                    }
+                }
+            }
         }
     }
 }

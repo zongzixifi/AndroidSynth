@@ -365,7 +365,7 @@ void playBack(){
 // 向前端传输count节拍
 extern "C" JNIEXPORT jdouble JNICALL
 Java_com_example_project2_FluidSynthManager_getCount(JNIEnv *env, jobject thiz) {
-    float progress = (float)(count)/(bar*clap -1);
+    double progress = static_cast<double>((count + bar * clap - 1) % (bar * clap)) / std::max(1, bar * clap - 1);
     return progress;
 }
 
