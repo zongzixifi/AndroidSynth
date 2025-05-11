@@ -146,7 +146,6 @@ fun CarouselSelector(modifier: Modifier,
         pageSpacing = 16.dp,
         modifier = modifier
             .fillMaxWidth()
-            .padding(10.dp)
     ) { page ->
         val scale = if (page == currentPage) 1.1f else 0.9f
         val item = items[page]
