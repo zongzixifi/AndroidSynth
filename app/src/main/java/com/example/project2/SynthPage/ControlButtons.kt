@@ -184,7 +184,8 @@ fun SimpleIconButton(
 fun Buttons(
     modifier: Modifier = Modifier,
     filepath: File,
-    viewModel : MetronomeViewModel
+    viewModel : MetronomeViewModel,
+    onClickJumpFrontScreen: () -> Unit ={}
 ) {
     Card(
         modifier = modifier,
@@ -208,6 +209,10 @@ fun Buttons(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                SimpleIconButton(
+                    onClick = onClickJumpFrontScreen,
+                    icon = Icons.Filled.ArrowBackIosNew
+                )
                 SimpleIconButton(
                     onClick = { FluidSynthManager.clearLoop() },
                     icon = Icons.Filled.DeleteOutline

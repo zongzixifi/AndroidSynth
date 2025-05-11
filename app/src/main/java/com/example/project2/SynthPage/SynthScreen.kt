@@ -57,7 +57,7 @@ import java.io.File
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath: File, onClickJumpToFullscreenDrum: () -> Unit ={}, drumViewModel: DrumViewModel) {
+fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath: File, onClickJumpToFullscreenDrum: () -> Unit ={}, onClickJumpFrontScreen: () -> Unit ={}, drumViewModel: DrumViewModel) {
 
     LaunchedEffect(Unit) {
         FluidSynthManager.initialize() //初始化FluidSynth
@@ -94,7 +94,8 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
                     onClickJumpToFullscreenDrum = {
                         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                     },
-                    drumViewModel = drumViewModel
+                    drumViewModel = drumViewModel,
+                    onClickJumpFrontScreen = onClickJumpFrontScreen
                 )
             }
         }
@@ -103,7 +104,7 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath : File, onClickJumpToFullscreenDrum: () -> Unit ={}, drumViewModel: DrumViewModel) {
+fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath : File, onClickJumpToFullscreenDrum: () -> Unit ={}, onClickJumpFrontScreen: () -> Unit ={}, drumViewModel: DrumViewModel) {
     val sheetState = rememberBottomSheetScaffoldState()
     BottomSheetScaffold(
         scaffoldState = sheetState,
@@ -155,7 +156,7 @@ fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: Metronome
                 .background(Color.Gray),
         ) {
             LinearDeterminateIndicator(viewModel = metronomeViewModel, modifier = Modifier.padding(top = 10.dp))
-            Buttons(filepath =  filepath, viewModel = metronomeViewModel, modifier = Modifier.padding(horizontal = 28.dp))
+            Buttons(filepath =  filepath, viewModel = metronomeViewModel, modifier = Modifier.padding(horizontal = 28.dp), onClickJumpFrontScreen = onClickJumpFrontScreen)
             BasicMusicInfoSet(modifier = Modifier
                 .weight(1f)
                 .padding(start = 28.dp, end = 28.dp, top = 28.dp))

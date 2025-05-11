@@ -63,7 +63,8 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                 modifier = Modifier,
                 metronomeViewModel = metronomeViewModel,
                 filepath = filepath,
-                drumViewModel = drumViewModel
+                drumViewModel = drumViewModel,
+                onClickJumpFrontScreen = {navController.navigateSingleTopTo(FrontScreenPage)},
                 )
         }
         composable<MusicGenScreenPage> {
