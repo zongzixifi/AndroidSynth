@@ -98,7 +98,6 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
                 )
             }
         }
-
     }
 }
 

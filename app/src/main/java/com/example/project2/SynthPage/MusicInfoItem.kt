@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -220,6 +221,17 @@ fun PickerWheel(
         listState.scrollToItem(selectedIndex)
     }
 
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { visibleIndex ->
+                // 当前居中项通常是第一可见项 + 1（因为中间遮罩偏下一点）
+                val centerIndex = (visibleIndex).coerceIn(0, items.lastIndex)
+                if (centerIndex != selectedIndex) {
+                    onItemSelected(centerIndex)
+                }
+            }
+    }
+
     Box(modifier = modifier.height(80.dp).background(Color(0xFF838EA8))) {
         LazyColumn(
             state = listState,
@@ -228,22 +240,27 @@ fun PickerWheel(
                 .align(Alignment.Center)
             ,
             contentPadding = PaddingValues(vertical = 20.dp), // 上下空出
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             itemsIndexed(items) { index, item ->
-                Text(
-                    text = item,
-                    fontSize = if (index == selectedIndex) 22.sp else 18.sp,
-                    color = if (index == selectedIndex) Color.White else Color(0xA0E0E0E0),
+                Box(
                     modifier = Modifier
-                        .padding(4.dp)
+                        .height(40.dp)
+                        .fillMaxWidth()
                         .clickable {
                             coroutineScope.launch {
                                 listState.animateScrollToItem(index)
                                 onItemSelected(index)
                             }
-                        }
-                )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = item,
+                        fontSize = if (index == selectedIndex) 22.sp else 18.sp,
+                        color = if (index == selectedIndex) Color.White else Color(0xA0E0E0E0),
+                    )
+                }
             }
         }
 

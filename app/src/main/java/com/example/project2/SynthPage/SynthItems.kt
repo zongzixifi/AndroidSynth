@@ -172,10 +172,10 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                                     if (componentSize.width > 0) event.x / componentSize.width else 0f
                                 val normalizedY =
                                     if (componentSize.height > 0) event.y / componentSize.height else 0f
-                                val num = (normalizedX * keyInterval).toInt()
-
+                                // 越界保护
+                                val num = (normalizedX * keyInterval).toInt().coerceIn(0, keyInterval - 1)
                                 key = CountKeyAndVel(num, midiNotes)
-                                vel = (baseVel + normalizedY * 117).toInt()
+                                vel = (baseVel + normalizedY * 117).toInt().coerceIn(0, 127)
 
                                 FluidSynthManager.playNote(key, vel, channel)
                                 true
@@ -186,10 +186,10 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                                     if (componentSize.width > 0) event.x / componentSize.width else 0f
                                 val normalizedY =
                                     if (componentSize.height > 0) event.y / componentSize.height else 0f
-                                val num = (normalizedX * keyInterval).toInt()
-
+                                // 越界保护
+                                val num = (normalizedX * keyInterval).toInt().coerceIn(0, keyInterval - 1)
                                 temp_key = CountKeyAndVel(num, midiNotes)
-                                temp_vel = (baseVel + normalizedY * 87).toInt()
+                                temp_vel = (baseVel + normalizedY * 87).toInt().coerceIn(0, 127)
                                 if (temp_vel != vel || key != temp_key) { //过滤抖动减少颤音
                                     FluidSynthManager.stopNoteDelay(key, channel)
                                     if (temp_vel - vel > 5 || temp_vel - vel < -5 || key != temp_key) {
