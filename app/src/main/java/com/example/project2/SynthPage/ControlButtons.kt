@@ -1,9 +1,12 @@
+
+
 package com.example.project2.SynthPage
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,7 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -50,40 +55,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.*
 
-@Composable
-fun ToggleButton(
-    modifier: Modifier = Modifier,
-    onStart: () -> Unit,
-    onStop: () -> Unit,
-    textStart: String,
-    textend: String,
-    ColorOnStart: Color = MaterialTheme.colorScheme.primary,
-    ColorOnEnd: Color = MaterialTheme.colorScheme.secondary,
-    shape: Shape = RectangleShape,
-) {
-    var isTriggered by remember { mutableStateOf(false) }
+import androidx.compose.material.icons.filled.*
 
-    Button(
-        shape = shape,
-        onClick = {
-            isTriggered = !isTriggered
-            if (isTriggered) {
-                onStart()
-            } else {
-                onStop()
-            }
-        },
-        modifier = modifier
-            .padding(1.dp)
-        ,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isTriggered) ColorOnStart else ColorOnEnd
-        )
-    ) {
-        Text(text = if (isTriggered) textStart else textend)
-    }
-}
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+
+import androidx.compose.ui.input.pointer.pointerInput
+
 
 @Composable
 fun ToggleButtonIcon(
@@ -97,6 +82,19 @@ fun ToggleButtonIcon(
     shape: Shape = RectangleShape
 ) {
     var isTriggered by remember { mutableStateOf(false) }
+    var isPressed by remember { mutableStateOf(false) }
+
+    // 按压效果：缩放动画
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing)
+    )
+
+    // 按压效果：透明度动画
+    val alpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.8f else 1f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing)
+    )
 
     Button(
         shape = shape,
@@ -110,14 +108,74 @@ fun ToggleButtonIcon(
         },
         modifier = modifier
             .padding(1.dp)
-        ,
+            .scale(scale)
+            .alpha(alpha)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isTriggered) ColorOnStart else ColorOnEnd
+            containerColor = Color.Transparent // 无背景颜色
         )
     ) {
         Icon(
             imageVector = if (isTriggered) IconStart else Iconend,
-            contentDescription = ""
+            contentDescription = "",
+            tint = if (isTriggered) ColorOnStart else ColorOnEnd
+        )
+    }
+}
+
+@Composable
+fun SimpleIconButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    icon: ImageVector,
+    tint: Color = MaterialTheme.colorScheme.onSurface
+) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    // 按压效果：缩放动画
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing)
+    )
+
+    // 按压效果：透明度动画
+    val alpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.8f else 1f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing)
+    )
+
+    Button(
+        shape = RectangleShape,
+        onClick = onClick,
+        modifier = modifier
+            .padding(2.dp)
+            .scale(scale)
+            .alpha(alpha)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent // 无背景颜色
+        )
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "",
+            tint = tint
         )
     }
 }
@@ -137,47 +195,64 @@ fun Buttons(
             defaultElevation = 6.dp
         ),
     ) {
-        Row(
+        Column(
             modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.SpaceAround,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ToggleButton(
-                modifier = Modifier.padding(2.dp),
-                onStart = {
-                    FluidSynthManager.startRecording()
-                },
-                onStop = { FluidSynthManager.stopRecording() },
-                textStart = "rec",
-                textend = "rec",
-                ColorOnStart = Color.Red,
-                ColorOnEnd = Color.Gray,
-            )
-            ToggleButtonIcon(
-                modifier = Modifier.padding(2.dp),
-                onStart = {
-                    FluidSynthManager.startPlayback()
-                },
-                onStop = { FluidSynthManager.stopPlayback() },
-                IconStart = Icons.Filled.Pause,
-                Iconend = Icons.Outlined.PlayArrow
-            )
-            Button(
-                shape = RectangleShape,
-                modifier = Modifier.padding(2.dp),
-                onClick = { FluidSynthManager.clearLoop() }) {
-                Text(text = "Clear")
+            // 第一行：右上角依次是清除和保存
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(2.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SimpleIconButton(
+                    onClick = { FluidSynthManager.clearLoop() },
+                    icon = Icons.Filled.DeleteOutline
+                )
+                SaveButtonDialog(filepath, viewModel)
             }
-            ToggleButtonIcon(
-                modifier = Modifier.padding(2.dp),
-                onStart = {
-                    FluidSynthManager.turnMetronomeON()
-                },
-                onStop = { FluidSynthManager.turnMetronomeOff() },
-                IconStart = Icons.Filled.Timer,
-                Iconend = Icons.Filled.Timer,
-            )
-            SaveButtonDialog(filepath, viewModel)
+
+            // 第二行：中间三个依次是 录制、播放、节拍器
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(2.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ToggleButtonIcon(
+                    modifier = Modifier.padding(2.dp),
+                    onStart = {
+                        FluidSynthManager.startRecording()
+                    },
+                    onStop = { FluidSynthManager.stopRecording() },
+                    IconStart = Icons.Filled.Mic,
+                    Iconend = Icons.Filled.Mic,
+                    ColorOnStart = Color.Red,
+                    ColorOnEnd = Color.Gray,
+                )
+                ToggleButtonIcon(
+                    modifier = Modifier.padding(2.dp),
+                    onStart = {
+                        FluidSynthManager.startPlayback()
+                    },
+                    onStop = { FluidSynthManager.stopPlayback() },
+                    IconStart = Icons.Filled.Pause,
+                    Iconend = Icons.Outlined.PlayArrow
+                )
+                ToggleButtonIcon(
+                    modifier = Modifier.padding(2.dp),
+                    onStart = {
+                        FluidSynthManager.turnMetronomeON()
+                    },
+                    onStop = { FluidSynthManager.turnMetronomeOff() },
+                    IconStart = Icons.Filled.Timer,
+                    Iconend = Icons.Filled.Timer,
+                )
+            }
         }
     }
 }
@@ -207,24 +282,18 @@ fun LinearDeterminateIndicator(
 
 @Composable
 fun SaveButtonDialog(
-     Path : File,
-     viewModel: MetronomeViewModel
+    Path : File,
+    viewModel: MetronomeViewModel
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var showProgressDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var fileName by remember { mutableStateOf("output") }
 
-    Button(
-        shape = RectangleShape,
-        modifier = Modifier.padding(2.dp),
-        contentPadding = PaddingValues(8.dp),
-        onClick = { showDialog = true }) {
-        Icon(
-            imageVector = Icons.Filled.Save,
-            contentDescription = "",
-        )
-    }
+    SimpleIconButton(
+        onClick = { showDialog = true },
+        icon = Icons.Filled.Save
+    )
 
     // 对话框
     if (showDialog) {
@@ -267,6 +336,7 @@ fun SaveButtonDialog(
                 }
             }
         )
+    }
 
     if (showProgressDialog) {
         AlertDialog(
@@ -299,7 +369,6 @@ fun SaveButtonDialog(
                 }
             }
         )
-    }
     }
 }
 

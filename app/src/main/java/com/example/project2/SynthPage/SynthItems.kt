@@ -83,6 +83,21 @@ import com.example.project2.SynthPage.getScaleNotes
 import kotlinx.coroutines.delay
 
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import kotlin.math.roundToInt
+
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -100,6 +115,8 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
     val mode = musicInfo.scale
     var octave by remember { mutableStateOf(4) }
     val rootKey = getMidiFromRootNote(musicInfo.root, octave = octave)
+
+    val keyStates = remember { mutableStateListOf<Boolean>().apply { repeat(12) { add(false) } } }
 
 
     val midiNotes = getScaleNotes(rootMidi = rootKey, mode = mode, noteCount = keyInterval)
@@ -177,6 +194,8 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                                 key = CountKeyAndVel(num, midiNotes)
                                 vel = (baseVel + normalizedY * 117).toInt().coerceIn(0, 127)
 
+                                keyStates[num] = true
+
                                 FluidSynthManager.playNote(key, vel, channel)
                                 true
                             }
@@ -190,6 +209,10 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                                 val num = (normalizedX * keyInterval).toInt().coerceIn(0, keyInterval - 1)
                                 temp_key = CountKeyAndVel(num, midiNotes)
                                 temp_vel = (baseVel + normalizedY * 87).toInt().coerceIn(0, 127)
+
+                                keyStates.replaceAll { false }
+                                keyStates[num] = true
+
                                 if (temp_vel != vel || key != temp_key) { //过滤抖动减少颤音
                                     FluidSynthManager.stopNoteDelay(key, channel)
                                     if (temp_vel - vel > 5 || temp_vel - vel < -5 || key != temp_key) {
@@ -203,6 +226,9 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
 
                             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                                 FluidSynthManager.stopNote(key, channel)
+
+                                keyStates.replaceAll { false }
+
                                 true
                             }
 
@@ -210,43 +236,97 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                         }
                     },
             ) {
-                KeyboardsItem(count = keyInterval, modifier = Modifier.matchParentSize())
+//                KeyboardsItem(count = keyInterval, modifier = Modifier.matchParentSize())
+                KeyboardsItem(count = keyInterval, keyStates = keyStates, modifier = Modifier.matchParentSize())
             }
         }
     }
 }
 
+//@Composable
+//fun KeyboardsItem(modifier: Modifier = Modifier, count: Int) {
+//    Row(
+//        modifier = modifier,
+//        verticalAlignment = Alignment.CenterVertically,
+//        horizontalArrangement = Arrangement.SpaceEvenly,
+//    ){
+//        repeat(count){
+//            KeyboardsBubble(modifier = Modifier.weight(1f))
+//        }
+//    }
+//}
+
 @Composable
-fun KeyboardsItem(modifier: Modifier = Modifier, count: Int) {
+fun KeyboardsItem(modifier: Modifier = Modifier, count: Int, keyStates: List<Boolean>) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
     ){
-        repeat(count){
-            KeyboardsBubble(modifier = Modifier.weight(1f))
+        repeat(count) { index ->
+            // 确保keyStates有足够的元素
+            val isPressed = if (index < keyStates.size) keyStates[index] else false
+            KeyboardsBubble(
+                modifier = Modifier.weight(1f),
+                isPressed = isPressed
+            )
         }
     }
 }
 
+
+//@Composable
+//fun KeyboardsBubble(modifier: Modifier = Modifier) {
+//    Surface(
+//        modifier = modifier
+//            .fillMaxHeight()
+//            .padding(vertical = 0.dp, horizontal = 2.dp)
+//        ,
+//        color = MaterialTheme.colorScheme.onSurface,
+//        shape = RoundedCornerShape(10.dp),
+//    ){
+//        Button(
+//            onClick = {}
+//        ){
+//
+//        }
+//    }
+//}
+
+
 @Composable
-fun KeyboardsBubble(modifier: Modifier = Modifier) {
+fun KeyboardsBubble(modifier: Modifier = Modifier, isPressed: Boolean = false) {
     Surface(
         modifier = modifier
             .fillMaxHeight()
             .padding(vertical = 0.dp, horizontal = 2.dp)
-        ,
-        color = MaterialTheme.colorScheme.onSurface,
+            .graphicsLayer {
+                // 根据按键状态调整透明度和缩放
+                alpha = if (isPressed) 0.8f else 1.0f
+                scaleX = if (isPressed) 0.95f else 1.0f
+                scaleY = if (isPressed) 0.95f else 1.0f
+            },
+        color = if (isPressed) {
+            // 按下时使用强调色或稍微变化的颜色
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+        } else {
+            MaterialTheme.colorScheme.primary
+        },
         shape = RoundedCornerShape(10.dp),
     ){
         Button(
-            onClick = {}
+            onClick = {},
+            enabled = false, // 禁用按钮点击，我们使用外层的触摸处理
+            modifier = Modifier.fillMaxSize(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent
+            )
         ){
-
+            // 如果需要在按键上显示图标或文字，可以在这里添加
         }
     }
 }
-
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -318,9 +398,22 @@ private fun KeyboardsItemPrev() {
     Keyboards()
 }
 
+//@Preview
+//@Composable
+//private fun KeyboardsPrev() {
+//    KeyboardsItem(count = 16)
+//}
+
 @Preview
 @Composable
 private fun KeyboardsPrev() {
-    KeyboardsItem(count = 16)
-}
+    // 创建一个固定的状态列表，模拟第3个和第7个按键被按下
+    val pressedKeys = remember {
+        MutableList(16) { index -> index == 2 || index == 6 } // 索引从0开始，所以2和6对应第3和第7个按键
+    }
 
+    KeyboardsItem(
+        count = 16,
+        keyStates = pressedKeys
+    )
+}
