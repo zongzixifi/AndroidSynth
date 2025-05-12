@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FitScreen
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,8 +40,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,6 +56,7 @@ import com.example.project2.ui.theme.Project2Theme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
+import androidx.compose.foundation.Image
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -71,7 +74,23 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
     val activity = LocalActivity.current
     activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     val config = LocalConfiguration.current
+
+    // 背景图片
+    val backgroundPainter: Painter = painterResource(id = R.drawable.test)
+
     Box(modifier = modifier.fillMaxSize()) {
+        // 背景图片作为最底层
+        Image(
+            painter = backgroundPainter,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillHeight,
+            colorFilter = ColorFilter.tint(
+                color = Color.Black.copy(alpha = 0.3f),
+                blendMode = BlendMode.Multiply
+            )
+        )
+
         if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             FullscreenDrumScreen(
                 modifier = Modifier
@@ -86,7 +105,7 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
         }else{
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
+                color = MaterialTheme.colorScheme.background.copy(alpha = 0.0f) // 使Surface透明
             ) {
                 DualLayerScreen(
                     metronomeViewModel = metronomeViewModel,
@@ -119,7 +138,7 @@ fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: Metronome
                     .padding(16.dp)
             ) {
                 Row(
-                    modifier =Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ){
                     IconButton(
@@ -153,18 +172,25 @@ fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: Metronome
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .background(Color.Gray),
+                .background(Color.Transparent), // 设置为透明背景
         ) {
             LinearDeterminateIndicator(viewModel = metronomeViewModel, modifier = Modifier.padding(top = 10.dp))
-            Buttons(filepath =  filepath, viewModel = metronomeViewModel, modifier = Modifier.padding(horizontal = 28.dp), onClickJumpFrontScreen = onClickJumpFrontScreen)
+            Buttons(
+                filepath = filepath,
+                viewModel = metronomeViewModel,
+                modifier = Modifier
+                    .fillMaxWidth() // 使 Card 横向最大化
+                    .padding(horizontal = 0.dp), // 移除水平内边距
+                onClickJumpFrontScreen = onClickJumpFrontScreen
+            )
             BasicMusicInfoSet(modifier = Modifier
                 .weight(1f)
                 .padding(start = 28.dp, end = 28.dp, top = 28.dp))
-            Keyboards( modifier = Modifier
-                .weight(3f)
-                .fillMaxHeight()
-                .padding(28.dp)
-                ,
+            Keyboards(
+                modifier = Modifier
+                    .weight(3f)
+                    .fillMaxHeight()
+                    .padding(28.dp)
             )
             Spacer(Modifier.padding(2.dp))
         }
