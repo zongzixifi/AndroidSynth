@@ -58,17 +58,18 @@ import java.io.File
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath: File, onClickJumpToFullscreenDrum: () -> Unit ={}, onClickJumpFrontScreen: () -> Unit ={}, drumViewModel: DrumViewModel) {
-
+    val activity = LocalActivity.current
     LaunchedEffect(Unit) {
         FluidSynthManager.initialize() //初始化FluidSynth
     }
     DisposableEffect(Unit) {
         onDispose {
             FluidSynthManager.shutdown() //注销FluidSynth
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         }
     }
 
-    val activity = LocalActivity.current
     activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     val config = LocalConfiguration.current
     Box(modifier = modifier.fillMaxSize()) {
