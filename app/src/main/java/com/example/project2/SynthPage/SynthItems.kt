@@ -189,10 +189,10 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                                     if (componentSize.width > 0) event.x / componentSize.width else 0f
                                 val normalizedY =
                                     if (componentSize.height > 0) event.y / componentSize.height else 0f
-                                val num = (normalizedX * keyInterval).toInt()
-
+                                // 越界保护
+                                val num = (normalizedX * keyInterval).toInt().coerceIn(0, keyInterval - 1)
                                 key = CountKeyAndVel(num, midiNotes)
-                                vel = (baseVel + normalizedY * 117).toInt()
+                                vel = (baseVel + normalizedY * 117).toInt().coerceIn(0, 127)
 
                                 keyStates[num] = true
 
@@ -205,10 +205,10 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                                     if (componentSize.width > 0) event.x / componentSize.width else 0f
                                 val normalizedY =
                                     if (componentSize.height > 0) event.y / componentSize.height else 0f
-                                val num = (normalizedX * keyInterval).toInt()
-
+                                // 越界保护
+                                val num = (normalizedX * keyInterval).toInt().coerceIn(0, keyInterval - 1)
                                 temp_key = CountKeyAndVel(num, midiNotes)
-                                temp_vel = (baseVel + normalizedY * 87).toInt()
+                                temp_vel = (baseVel + normalizedY * 87).toInt().coerceIn(0, 127)
 
                                 keyStates.replaceAll { false }
                                 keyStates[num] = true

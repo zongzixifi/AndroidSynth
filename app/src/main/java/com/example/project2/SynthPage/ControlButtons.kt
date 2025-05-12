@@ -58,6 +58,7 @@ import java.io.File
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 
 import androidx.compose.material.icons.filled.*
 
@@ -68,6 +69,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 
 import androidx.compose.ui.input.pointer.pointerInput
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 
 
 @Composable
@@ -107,7 +109,7 @@ fun ToggleButtonIcon(
             }
         },
         modifier = modifier
-            .padding(1.dp)
+            .padding(0.dp)
             .scale(scale)
             .alpha(alpha)
             .pointerInput(Unit) {
@@ -130,6 +132,61 @@ fun ToggleButtonIcon(
         )
     }
 }
+
+
+// 新的小尺寸图标按钮组件
+@Composable
+fun TinyIconButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    icon: ImageVector,
+    tint: Color = MaterialTheme.colorScheme.onSurface
+) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    // 按压效果：缩放动画
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing)
+    )
+
+    // 按压效果：透明度动画
+    val alpha by animateFloatAsState(
+        targetValue = if (isPressed) 0.8f else 1f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing)
+    )
+
+    Button(
+        shape = CircleShape,
+        onClick = onClick,
+        modifier = modifier
+//            .size(100.dp)
+//            .width(50.dp)
+//            .height(50.dp)
+            .padding(0.dp)
+            .scale(scale)
+            .alpha(alpha)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent // 无背景颜色
+        )
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = "",
+            tint = tint
+        )
+    }
+}
+
 
 @Composable
 fun SimpleIconButton(
@@ -182,49 +239,67 @@ fun SimpleIconButton(
 
 @Composable
 fun Buttons(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.fillMaxWidth() // 使 Card 横向最大化
+        .padding(horizontal = 0.dp), // 移除水平内边距,
     filepath: File,
-    viewModel : MetronomeViewModel
+    viewModel : MetronomeViewModel,
+    onClickJumpFrontScreen: () -> Unit ={}
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent // 设置为透明背景
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
+            defaultElevation = 0.dp
         ),
     ) {
         Column(
-            modifier = modifier,
+            modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 第一行：右上角依次是清除和保存
+            // 第一行：左边是返回按钮，右边依次是清除和保存
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(2.dp),
-                horizontalArrangement = Arrangement.End,
+                    .padding(0.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 左侧返回按钮
                 SimpleIconButton(
-                    onClick = { FluidSynthManager.clearLoop() },
-                    icon = Icons.Filled.DeleteOutline
+                    onClick = onClickJumpFrontScreen,
+                    icon = Icons.Filled.ArrowBackIosNew
                 )
-                SaveButtonDialog(filepath, viewModel)
+
+                // 右侧按钮容器（清除+保存）
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(0.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 使用新的 TinyIconButton
+                    TinyIconButton(
+                        onClick = { FluidSynthManager.clearLoop() },
+                        icon = Icons.Filled.DeleteOutline
+                    )
+                    SaveButtonDialog(
+                        Path = filepath,
+                        viewModel = viewModel
+                    )
+                }
             }
 
             // 第二行：中间三个依次是 录制、播放、节拍器
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(2.dp),
-                horizontalArrangement = Arrangement.Center,
+                    .padding(0.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally), // 保持或增加第二行的间距
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ToggleButtonIcon(
-                    modifier = Modifier.padding(2.dp),
+                    modifier = Modifier.padding(0.dp),
                     onStart = {
                         FluidSynthManager.startRecording()
                     },
@@ -235,7 +310,7 @@ fun Buttons(
                     ColorOnEnd = Color.Gray,
                 )
                 ToggleButtonIcon(
-                    modifier = Modifier.padding(2.dp),
+                    modifier = Modifier.padding(0.dp),
                     onStart = {
                         FluidSynthManager.startPlayback()
                     },
@@ -244,7 +319,7 @@ fun Buttons(
                     Iconend = Icons.Outlined.PlayArrow
                 )
                 ToggleButtonIcon(
-                    modifier = Modifier.padding(2.dp),
+                    modifier = Modifier.padding(0.dp),
                     onStart = {
                         FluidSynthManager.turnMetronomeON()
                     },
@@ -283,7 +358,8 @@ fun LinearDeterminateIndicator(
 @Composable
 fun SaveButtonDialog(
     Path : File,
-    viewModel: MetronomeViewModel
+    viewModel: MetronomeViewModel,
+    modifier: Modifier = Modifier // 添加modifier参数
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var showProgressDialog by remember { mutableStateOf(false) }
@@ -291,6 +367,7 @@ fun SaveButtonDialog(
     var fileName by remember { mutableStateOf("output") }
 
     SimpleIconButton(
+        modifier = modifier,
         onClick = { showDialog = true },
         icon = Icons.Filled.Save
     )

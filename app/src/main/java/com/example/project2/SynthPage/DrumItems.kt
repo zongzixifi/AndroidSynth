@@ -157,10 +157,10 @@ fun DrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) {
     Card (
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = Color.Transparent // 设置为透明背景
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
+            defaultElevation = 0.dp
         ),
     ){
         Column(
