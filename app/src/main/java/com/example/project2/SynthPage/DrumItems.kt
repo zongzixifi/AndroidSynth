@@ -164,7 +164,7 @@ fun DrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) {
         ),
     ){
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .padding(horizontal = 2.dp, vertical = 4.dp).fillMaxWidth()
         ) {
             Spacer(Modifier.padding(4.dp))
@@ -237,10 +237,7 @@ fun lazyRowDrumSet(modifier: Modifier = Modifier, drumViewModel: DrumViewModel) 
         Card(
             modifier = Modifier.fillMaxSize(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 6.dp
+                containerColor = Color.Transparent
             ),
         ) {
             LazyRow(

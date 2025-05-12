@@ -57,6 +57,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Shape
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -76,123 +78,138 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
     val config = LocalConfiguration.current
 
     // 背景图片
-    val backgroundPainter: Painter = painterResource(id = R.drawable.test)
 
-    Box(modifier = modifier.fillMaxSize()) {
-        // 背景图片作为最底层
-        Image(
-            painter = backgroundPainter,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillHeight,
-            colorFilter = ColorFilter.tint(
-                color = Color.Black.copy(alpha = 0.3f),
-                blendMode = BlendMode.Multiply
-            )
+    if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        FullscreenDrumScreen(
+            modifier = Modifier
+                .fillMaxSize()
+            ,
+            drumViewModel = drumViewModel,
+            onClickBackToFullscreenDrum = {
+                activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            },
+            metronomeViewModel = metronomeViewModel
         )
-
-        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            FullscreenDrumScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                ,
-                drumViewModel = drumViewModel,
-                onClickBackToFullscreenDrum = {
-                    activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }else{
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background.copy(alpha = 0.0f) // 使Surface透明
+        ) {
+            DualLayerScreen(
+                modifier = Modifier.background(Color.Transparent),
+                metronomeViewModel = metronomeViewModel,
+                filepath = filepath,
+                onClickJumpToFullscreenDrum = {
+                    activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 },
-                metronomeViewModel = metronomeViewModel
+                drumViewModel = drumViewModel,
+                onClickJumpFrontScreen = onClickJumpFrontScreen
             )
-        }else{
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background.copy(alpha = 0.0f) // 使Surface透明
-            ) {
-                DualLayerScreen(
-                    metronomeViewModel = metronomeViewModel,
-                    filepath = filepath,
-                    onClickJumpToFullscreenDrum = {
-                        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    },
-                    drumViewModel = drumViewModel,
-                    onClickJumpFrontScreen = onClickJumpFrontScreen
-                )
-            }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath : File, onClickJumpToFullscreenDrum: () -> Unit ={}, onClickJumpFrontScreen: () -> Unit ={}, drumViewModel: DrumViewModel) {
     val sheetState = rememberBottomSheetScaffoldState()
+    val backgroundPainter: Painter = painterResource(id = R.drawable.test)
+
     BottomSheetScaffold(
+        modifier = modifier,
         scaffoldState = sheetState,
-        sheetPeekHeight = 80.dp, // 默认展示部分高度
+        containerColor = Color(0xFFFFFBFE),
+        sheetPeekHeight = 50.dp,
         sheetContent = {
             // 上层滑动层
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(450.dp)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+            Surface(
+                tonalElevation = 0.dp,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ){
-                    IconButton(
-                        onClick = { drumViewModel.clearAllDrumNotes() },
-                        modifier = Modifier
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(450.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = "清除鼓机"
-                        )
+                        IconButton(
+                            onClick = { drumViewModel.clearAllDrumNotes() },
+                            modifier = Modifier
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "清除鼓机"
+                            )
+                        }
+                        IconButton(
+                            onClick = onClickJumpToFullscreenDrum,
+                            modifier = Modifier
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.FitScreen,
+                                contentDescription = "打开全屏打击垫"
+                            )
+                        }
                     }
-                    IconButton(
-                        onClick = onClickJumpToFullscreenDrum,
-                        modifier = Modifier
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.FitScreen,
-                            contentDescription = "打开全屏打击垫"
-                        )
-                    }
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    lazyRowDrumSet(drumViewModel = drumViewModel)
+                    Spacer(Modifier.height(10.dp))
+                    VerticalReorderList()
                 }
-                Spacer(modifier = Modifier.padding(5.dp))
-                lazyRowDrumSet(drumViewModel = drumViewModel)
-                Spacer(Modifier.height(10.dp))
-                VerticalReorderList()
             }
         }
     ) {innerPadding ->
         // 底层背景页面
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .background(Color.Transparent), // 设置为透明背景
-        ) {
-            LinearDeterminateIndicator(viewModel = metronomeViewModel, modifier = Modifier.padding(top = 10.dp))
-            Buttons(
-                filepath = filepath,
-                viewModel = metronomeViewModel,
+        Box(){
+//            Image(
+//                painter = backgroundPainter,
+//                contentDescription = null,
+//                modifier = Modifier.fillMaxSize(),
+//                contentScale = ContentScale.FillHeight,
+//                colorFilter = ColorFilter.tint(
+//                    color = Color.Black.copy(alpha = 0.3f),
+//                    blendMode = BlendMode.Multiply
+//                )
+//            )
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth() // 使 Card 横向最大化
-                    .padding(horizontal = 0.dp), // 移除水平内边距
-                onClickJumpFrontScreen = onClickJumpFrontScreen
-            )
-            BasicMusicInfoSet(modifier = Modifier
-                .weight(1f)
-                .padding(start = 28.dp, end = 28.dp, top = 28.dp))
-            Keyboards(
-                modifier = Modifier
-                    .weight(3f)
-                    .fillMaxHeight()
-                    .padding(28.dp)
-            )
-            Spacer(Modifier.padding(2.dp))
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .background(Color.Transparent), // 设置为透明背景
+            ) {
+                Buttons(
+                    filepath = filepath,
+                    viewModel = metronomeViewModel,
+                    modifier = Modifier
+                        .fillMaxWidth() // 使 Card 横向最大化
+                        .padding(horizontal = 0.dp), // 移除水平内边距
+                    onClickJumpFrontScreen = onClickJumpFrontScreen
+                )
+                BasicMusicInfoSet(
+                    modifier = Modifier.fillMaxWidth()
+                    .weight(1f)
+                    .padding(start = 28.dp, end = 28.dp, top = 20.dp)
+                )
+
+                LinearDeterminateIndicator(
+                    viewModel = metronomeViewModel,
+                    modifier = Modifier
+                        .padding(start = 28.dp, end = 28.dp, top = 14.dp)
+                )
+
+                Keyboards(
+                    modifier = Modifier
+                        .weight(3f)
+                        .fillMaxHeight()
+                        .padding(start = 28.dp, end = 28.dp, top = 14.dp)
+                )
+                Spacer(Modifier.padding(2.dp))
+            }
         }
     }
 }

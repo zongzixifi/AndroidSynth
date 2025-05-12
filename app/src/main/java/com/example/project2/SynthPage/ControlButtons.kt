@@ -79,8 +79,8 @@ fun ToggleButtonIcon(
     onStop: () -> Unit,
     IconStart: ImageVector,
     Iconend: ImageVector,
-    ColorOnStart: Color = MaterialTheme.colorScheme.primary,
-    ColorOnEnd: Color = MaterialTheme.colorScheme.secondary,
+    ColorOnStart: Color = Color(0xFF697078),
+    ColorOnEnd: Color = Color(0xFF697078),
     shape: Shape = RectangleShape
 ) {
     var isTriggered by remember { mutableStateOf(false) }
@@ -307,7 +307,6 @@ fun Buttons(
                     IconStart = Icons.Filled.Mic,
                     Iconend = Icons.Filled.Mic,
                     ColorOnStart = Color.Red,
-                    ColorOnEnd = Color.Gray,
                 )
                 ToggleButtonIcon(
                     modifier = Modifier.padding(0.dp),
@@ -326,6 +325,7 @@ fun Buttons(
                     onStop = { FluidSynthManager.turnMetronomeOff() },
                     IconStart = Icons.Filled.Timer,
                     Iconend = Icons.Filled.Timer,
+                    ColorOnStart = Color.Black,
                 )
             }
         }
