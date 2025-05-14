@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project2.ChatScreen.ChatViewModel
+import com.example.project2.MusicGenPage.MusicGenViewModel
 import com.example.project2.SynthPage.MetronomeViewModel
 import com.example.project2.SynthPage.SynthScreen
 import com.example.project2.ui.theme.Project2Theme
@@ -78,11 +80,12 @@ object FluidSynthManager {
 
 class MainActivity : ComponentActivity() {
     private val chatViewModel : ChatViewModel by viewModels()
+    private val metronomeViewModel: MetronomeViewModel by viewModels()
+    private val musicGenViewModel: MusicGenViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        val metronomeViewModel: MetronomeViewModel by viewModels()
 
         copySoundFontToInternalStorage(this)
         val musicDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "demoMusic")
@@ -100,6 +103,7 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.padding(innerPadding),
                             chatViewModel = chatViewModel,
                             metronomeViewModel = metronomeViewModel,
+                            musicGenViewModel = musicGenViewModel,
                             filepath = filepath,
                             context = applicationContext
                         )

@@ -7,7 +7,7 @@
     <string name="generated_music_output">生成音乐输出</string>
     <string name="submit_and_generate">提交</string>
     <string name="please_select_a_music_file_or_make_text_input_first">请选择一个参考音频或是文本输入</string>
-    <string name="describe_your_music">描述您的音乐需求（暂支持英文提示词）</string>
+    <string name="describe_your_music">描述您的音乐需求</string>
     <string name="import_your_raw_music">输入您的源音频</string>
     <string name="input">Input</string>
 </resources>

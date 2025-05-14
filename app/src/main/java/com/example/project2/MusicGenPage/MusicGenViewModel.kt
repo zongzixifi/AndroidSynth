@@ -8,6 +8,10 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,29 +36,33 @@ class MusicGenViewModel : ViewModel() {
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(3000, TimeUnit.SECONDS)
-        .readTimeout(5000, TimeUnit.SECONDS)
-        .writeTimeout(3000, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(180, TimeUnit.SECONDS)  // ⬅️ 增大读取时间
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    fun uploadMusicAndGenerate(context: Context, musicUri: Uri?, prompt: String) {
+    fun uploadMusicAndGenerate(context: Context, musicUri: Uri?, description: String, durtime: String = "20") {
         _isGenerating.value = true
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = "http://207.148.111.64:12525/funk_generate"  // Android 访问本机的方式
+                //val url = "https://musicgen.zongzi.org/generate"
+                val url = "http://192.168.31.133:6006/generate"  // Android 访问本机的方式
+
                 _generatedMusicUri.value = null
                 //val jsonPrompt = """{"prompt": "$prompt"}"""
                 //val jsonRequestBody = jsonPrompt.toRequestBody("application/json".toMediaType())
                 val requestBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("prompt", prompt)  // 添加 prompt
+                    .addFormDataPart("dur_time", durtime)
+                    .addFormDataPart("description", description)
 
                 // **如果用户上传了音频**
                 musicUri?.let {
                     val file = uriToFile(context, it)
                     run {
-                        val requestBody = file.asRequestBody("audio/wav".toMediaTypeOrNull())
-                        requestBuilder.addFormDataPart("audio", file.name, requestBody)
+                        val mimeType = context.contentResolver.getType(musicUri) ?: "audio/wav" // 自动识别文件格式
+                        val requestBody = file.asRequestBody(mimeType.toMediaTypeOrNull())
+                        requestBuilder.addFormDataPart("melody", file.name, requestBody)
                     }
                 }
 
@@ -112,3 +120,5 @@ class MusicGenViewModel : ViewModel() {
         return file
     }
 }
+
+

@@ -20,6 +20,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.project2.MusicGenPage.MusicGenViewModel
 import com.example.project2.MusicGenPage.MusicGenerationScreen
 import com.example.project2.SynthPage.DrumViewModel
 import com.example.project2.SynthPage.FullscreenDrumScreen
@@ -35,6 +36,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                    startDestination : FrontScreenPage = FrontScreenPage,
                    chatViewModel : ChatViewModel,
                    metronomeViewModel: MetronomeViewModel,
+                   musicGenViewModel: MusicGenViewModel,
                    filepath: File,
                    context: Context
 )
@@ -68,7 +70,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                 )
         }
         composable<MusicGenScreenPage> {
-            MusicGenerationScreen(context)
+            MusicGenerationScreen(context, viewModel= musicGenViewModel)
         }
     }
 }
