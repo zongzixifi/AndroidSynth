@@ -119,7 +119,14 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
     val keyStates = remember { mutableStateListOf<Boolean>().apply { repeat(12) { add(false) } } }
 
 
-    val midiNotes = getScaleNotes(rootMidi = rootKey, mode = mode, noteCount = keyInterval)
+//    val midiNotes = getScaleNotes(rootMidi = rootKey, mode = mode, noteCount = keyInterval)
+    val midiNotes = remember(musicInfo.root, octave) {
+        getScaleNotes(
+            rootMidi = getMidiFromRootNote(musicInfo.root, octave),
+            mode = musicInfo.scale,
+            noteCount = keyInterval
+        )
+    }
     Surface(
         modifier = modifier
             .height( 300.dp),
@@ -237,7 +244,14 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
                     },
             ) {
 //                KeyboardsItem(count = keyInterval, modifier = Modifier.matchParentSize())
-                KeyboardsItem(count = keyInterval, keyStates = keyStates, modifier = Modifier.matchParentSize())
+//                KeyboardsItem(count = keyInterval, keyStates = keyStates, modifier = Modifier.matchParentSize())
+                KeyboardsItem(
+                    count = keyInterval,
+                    keyStates = keyStates,
+                    midiNotes = midiNotes, // 新增参数
+                    modifier = Modifier.matchParentSize()
+                )
+
             }
         }
     }
@@ -257,23 +271,27 @@ fun Keyboards(modifier: Modifier = Modifier, viewModel: MusicViewModel = viewMod
 //}
 
 @Composable
-fun KeyboardsItem(modifier: Modifier = Modifier, count: Int, keyStates: List<Boolean>) {
+fun KeyboardsItem(
+    modifier: Modifier = Modifier,
+    count: Int,
+    keyStates: List<Boolean>,
+    midiNotes: List<Int> // 接收 MIDI 音符列表
+) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
-    ){
+    ) {
         repeat(count) { index ->
-            // 确保keyStates有足够的元素
-            val isPressed = if (index < keyStates.size) keyStates[index] else false
+            val midiNote = if (index < midiNotes.size) midiNotes[index] else 60 // 默认值 60（C4）
             KeyboardsBubble(
                 modifier = Modifier.weight(1f),
-                isPressed = isPressed
+                isPressed = keyStates.getOrElse(index) { false },
+                midiNote = midiNote // 传递 MIDI 音符
             )
         }
     }
 }
-
 
 //@Composable
 //fun KeyboardsBubble(modifier: Modifier = Modifier) {
@@ -295,38 +313,48 @@ fun KeyboardsItem(modifier: Modifier = Modifier, count: Int, keyStates: List<Boo
 
 
 @Composable
-fun KeyboardsBubble(modifier: Modifier = Modifier, isPressed: Boolean = false) {
+fun KeyboardsBubble(
+    modifier: Modifier = Modifier,
+    isPressed: Boolean = false,
+    midiNote: Int
+) {
+    // 获取主题色
+    val themeColor = MaterialTheme.colorScheme.primary
+    // 计算动态亮度
+    val lightness = 0.5f + (midiNote.toFloat() / 127) * 0.5f
+
+    // 根据主题色和动态亮度调整颜色
+    val dynamicColor = themeColor.copy(alpha = lightness)
+
     Surface(
         modifier = modifier
             .fillMaxHeight()
-            .padding(vertical = 0.dp, horizontal = 2.dp)
+            .padding(horizontal = 2.dp)
             .graphicsLayer {
-                // 根据按键状态调整透明度和缩放
                 alpha = if (isPressed) 0.8f else 1.0f
                 scaleX = if (isPressed) 0.95f else 1.0f
                 scaleY = if (isPressed) 0.95f else 1.0f
             },
-        color = if (isPressed) {
-            // 按下时使用强调色或稍微变化的颜色
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-        } else {
-            MaterialTheme.colorScheme.primary
-        },
-        shape = RoundedCornerShape(10.dp),
-    ){
+        color = if (isPressed) dynamicColor.darker() else dynamicColor, // 使用 dynamicColor
+        shape = RoundedCornerShape(10.dp)
+    ) {
         Button(
             onClick = {},
-            enabled = false, // 禁用按钮点击，我们使用外层的触摸处理
+            enabled = false,
             modifier = Modifier.fillMaxSize(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent
             )
-        ){
-            // 如果需要在按键上显示图标或文字，可以在这里添加
-        }
+        ) {}
     }
 }
+
+// 扩展函数：使颜色变暗
+fun Color.darker(factor: Float = 0.7f): Color {
+    return this.copy(alpha = this.alpha * factor)
+}
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -407,13 +435,20 @@ private fun KeyboardsItemPrev() {
 @Preview
 @Composable
 private fun KeyboardsPrev() {
-    // 创建一个固定的状态列表，模拟第3个和第7个按键被按下
+    // 1. 创建模拟的按压状态列表
     val pressedKeys = remember {
-        MutableList(16) { index -> index == 2 || index == 6 } // 索引从0开始，所以2和6对应第3和第7个按键
+        MutableList(16) { index -> index == 2 || index == 6 }
     }
 
+    // 2. 创建模拟的MIDI音符列表（示例：C大调音阶）
+    val midiNotes = remember {
+        (0 until 16).map { 60 + it } // 从C4（MIDI 60）开始连续16个音
+    }
+
+    // 3. 传入midiNotes参数
     KeyboardsItem(
         count = 16,
-        keyStates = pressedKeys
+        keyStates = pressedKeys,
+        midiNotes = midiNotes // 新增参数
     )
 }
