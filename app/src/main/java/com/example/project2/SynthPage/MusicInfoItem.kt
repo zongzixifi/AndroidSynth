@@ -72,31 +72,29 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel: MusicViewModel =
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-//            Row(
-//                modifier = Modifier,
-//                horizontalArrangement = Arrangement.spacedBy(1.dp)
-//            ) {
-//                Button(
-//                    onClick = {
-//                        viewModel.updateBar(1)
-//                    }
-//                ) { Text(text = "1 BAR") }
-//                Button(
-//                    onClick = {
-//                        viewModel.updateBar(2)
-//                    }
-//                ) { Text(text = "2 BAR") }
-//                Button(
-//                    onClick = {
-//                        viewModel.updateBar(4)
-//                    }
-//                ) { Text(text = "4 BAR") }
-//                Button(
-//                    onClick = {
-//                        viewModel.updateBar(8)
-//                    }
-//                ) { Text(text = "8 BAR") }
-//            }
+            Row(
+                modifier = Modifier,
+                horizontalArrangement = Arrangement.spacedBy(1.dp)
+            ) {
+                Button(
+                    modifier = Modifier.height(30.dp),
+                    onClick = {
+                        viewModel.updateBar(1)
+                    }
+                ) { Text(text = "1 BAR", fontSize = 10.sp) }
+                Button(
+                    modifier = Modifier.height(30.dp),
+                    onClick = {
+                        viewModel.updateBar(2)
+                    }
+                ) { Text(text = "2 BAR", fontSize = 10.sp) }
+                Button(
+                    modifier = Modifier.height(30.dp),
+                    onClick = {
+                        viewModel.updateBar(4)
+                    }
+                ) { Text(text = "4 BAR", fontSize = 10.sp)}
+            }
 
 
             Row(
