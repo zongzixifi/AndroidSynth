@@ -39,6 +39,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                    startDestination : FrontScreenPage = FrontScreenPage,
                    chatViewModel : ChatViewModel,
                    metronomeViewModel: MetronomeViewModel,
+                   drumViewModel:  DrumViewModel,
                    musicGenViewModel: MusicGenViewModel,
                    filepath: File,
                    context: Context
@@ -46,7 +47,6 @@ fun NavgationGraph(modifier: Modifier = Modifier,
 {
     val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentNavBackStackEntry?.destination?.route ?: startDestination
-    val drumViewModel: DrumViewModel = viewModel()
 
     NavHost(
         navController = navController,

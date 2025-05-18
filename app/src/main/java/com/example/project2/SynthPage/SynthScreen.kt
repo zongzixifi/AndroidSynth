@@ -69,6 +69,7 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
     }
     DisposableEffect(Unit) {
         onDispose {
+
             FluidSynthManager.shutdown() //注销FluidSynth
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
@@ -106,12 +107,16 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
             )
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeViewModel, filepath : File, onClickJumpToFullscreenDrum: () -> Unit ={}, onClickJumpFrontScreen: () -> Unit ={}, drumViewModel: DrumViewModel) {
+fun DualLayerScreen(modifier: Modifier = Modifier,
+                    metronomeViewModel: MetronomeViewModel,
+                    filepath : File,
+                    onClickJumpToFullscreenDrum: () -> Unit ={},
+                    onClickJumpFrontScreen: () -> Unit ={},
+                    drumViewModel: DrumViewModel) {
     val sheetState = rememberBottomSheetScaffoldState()
     val backgroundPainter: Painter = painterResource(id = R.drawable.test)
 
@@ -184,6 +189,7 @@ fun DualLayerScreen(modifier: Modifier = Modifier, metronomeViewModel: Metronome
                 Buttons(
                     filepath = filepath,
                     viewModel = metronomeViewModel,
+                    drumViewModel = drumViewModel,
                     modifier = Modifier
                         .fillMaxWidth() // 使 Card 横向最大化
                         .padding(horizontal = 0.dp), // 移除水平内边距

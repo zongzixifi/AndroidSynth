@@ -63,6 +63,16 @@ void reCreateFluidSynthForSave();
 extern "C"
 void JNIEXPORT JNICALL Java_com_example_project2_FluidSynthManager_destoryFluidSynth(JNIEnv *env, jobject thiz);
 
+/**
+ * 设置基本音乐参数（节拍 BPM、小节数 bar、每小节拍数 clap）
+ * 此函数仅更新临时变量 tempBPM、tempbar、tempclap，会在下一个周期重设实际参数
+ *
+ * @param env JNI 环境指针
+ * @param jBPM 新的节拍数
+ * @param jbar 新的小节数
+ * @param jclap 每小节的拍数
+ * 对底层 FluidSynth 状态无直接影响，仅影响下周期参数
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_setBasicMusicInfo(JNIEnv *env, jobject /* this */, jint jBPM, jint jbar, jint jclap) {
@@ -82,6 +92,16 @@ void midi_record_callback(unsigned int time, int note, int velocity, bool isNote
     }
 }
 
+/**
+ * 添加鼓音轨的音符事件
+ * 将指定时间和音高的鼓音符添加到 DrumMidiTrack 中，后续回放时自动触发
+ *
+ * @param env JNI 环境指针
+ * @param note 鼓音符的音高
+ * @param timeNum 时间编码（16分音符为单位）
+ * @param svel 音符力度（velocity）
+ * 影响：向 DrumMidiTrack 添加音符事件，影响后续鼓机回放
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_setDrumNote(JNIEnv *env, jobject /* this */, jint note, jint timeNum, jint svel) {
@@ -93,6 +113,14 @@ Java_com_example_project2_FluidSynthManager_setDrumNote(JNIEnv *env, jobject /* 
                         time, note, svel, true);
 }
 
+/**
+ * 删除指定时间和音高的鼓音符事件
+ *
+ * @param env JNI 环境指针
+ * @param note 鼓音符的音高
+ * @param timeNum 时间编码（16分音符为单位）
+ * 影响：从 DrumMidiTrack 移除对应音符事件，影响后续鼓机回放
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_delDrumNote(JNIEnv *env, jobject /* this */, jint note , jint timeNum) {
@@ -108,6 +136,17 @@ Java_com_example_project2_FluidSynthManager_delDrumNote(JNIEnv *env, jobject /* 
     }
 }
 
+/**
+ * 添加和弦音轨的音符事件
+ * 将指定时间和音高的和弦音符添加到 ChordMidiTrack 中，后续回放时自动触发
+ *
+ * @param env JNI 环境指针
+ * @param note 和弦音符的音高
+ * @param timeNum 时间编码（16分音符为单位）
+ * @param svel 音符力度（velocity）
+ * @param clapOnCount 保留参数，暂未使用
+ * 影响：向 ChordMidiTrack 添加音符事件，影响后续和弦回放
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_setChordNote(JNIEnv *env, jobject /* this */, jint note, jint timeNum, jint svel, jint clapOnCount) {
@@ -119,6 +158,14 @@ Java_com_example_project2_FluidSynthManager_setChordNote(JNIEnv *env, jobject /*
                         time, note, svel, true);
 }
 
+/**
+ * 删除指定时间和音高的和弦音符事件
+ *
+ * @param env JNI 环境指针
+ * @param note 和弦音符的音高
+ * @param timeNum 时间编码（16分音符为单位）
+ * 影响：从 ChordMidiTrack 移除对应音符事件，影响后续和弦回放
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_delChordNote(JNIEnv *env, jobject /* this */, jint note , jint timeNum) {
@@ -138,6 +185,12 @@ std::mutex destroyMutex;
 std::condition_variable destroyCond;
 std::atomic<bool> shouldDestroyFluidSynth(false);
 
+/**
+ * 删除所有和弦音轨的音符事件
+ *
+ * @param env JNI 环境指针
+ * 影响：清空 ChordMidiTrack，和弦回放将无任何音符
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_delAllChordNote(JNIEnv *env, jobject /* this */) {
@@ -206,6 +259,14 @@ std::string jstringToString(JNIEnv *env, jstring jStr) {
 }
 
 
+/**
+ * 后台线程专用：等待信号并销毁 FluidSynth 实例
+ * 线程会阻塞等待 shouldDestroyFluidSynth 标志，收到信号后销毁音频驱动、合成器和设置
+ *
+ * @param env JNI 环境指针
+ * 影响：彻底释放底层 FluidSynth 资源
+ * 特别说明：使用 destroyMutex、destroyCond 条件变量与 shouldDestroyFluidSynth 原子变量进行线程同步
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_destroyFluidSynthLoop(JNIEnv *env, jobject /* this */) {
@@ -223,6 +284,16 @@ Java_com_example_project2_FluidSynthManager_destroyFluidSynthLoop(JNIEnv *env, j
 }
 
 
+/**
+ * 启动保存音频到 WAV 文件流程
+ * 设置保存路径并重建 FluidSynth 实例到文件驱动模式，准备录制
+ *
+ * @param env JNI 环境指针
+ * @param fileName 文件名（jstring）
+ * @param Path 路径（jstring）
+ * 影响：重置 FluidSynth 为文件驱动，后续音频输出到 WAV
+ * 特别说明：涉及全局 fileNameStr、filePathStr 变量
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_SaveToWav(JNIEnv *env, jobject /* this */, jstring fileName, jstring Path){
@@ -425,6 +496,16 @@ void fluidsynth_change(int sfid){
 }
 
 
+/**
+ * 创建并初始化 FluidSynth 合成器实例
+ * 加载 SoundFont，创建音频驱动、序列器和定时器，准备音频合成
+ *
+ * @param env JNI 环境指针
+ * @param thiz Java 对象
+ * @return 初始化结果字符串
+ * 影响：分配全局 synth、settings、adriver、seq 等，启动底层音频合成
+ * 特别说明：重复调用会返回已初始化提示，不会重复分配资源
+ */
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobject thiz) {
@@ -457,6 +538,14 @@ Java_com_example_project2_FluidSynthManager_createFluidSynth(JNIEnv *env, jobjec
     return env->NewStringUTF("FluidSynth initialized successfully");
 }
 
+/**
+ * 销毁 FluidSynth 合成器实例，释放所有相关资源
+ *
+ * @param env JNI 环境指针
+ * @param thiz Java 对象
+ * 影响：彻底释放底层 synth、settings、adriver、seq 等资源
+ * 特别说明：可被后台线程调用（如 destroyFluidSynthLoop），线程安全由外部保证
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_destoryFluidSynth(JNIEnv *env, jobject thiz) {
@@ -530,6 +619,16 @@ void reCreateFluidSynthForSave(){
     startTimer();
 }
 
+/**
+ * 立即播放一个音符（Note On），可用于键盘演奏或录音
+ *
+ * @param env JNI 环境指针
+ * @param note 音符号（MIDI note number）
+ * @param svel 力度（velocity）
+ * @param channel 通道号
+ * 影响：触发底层合成器播放音符，若正在录音则同步记录 MIDI 事件
+ * 特别说明：会使用全局 synth、seq、isRecording 等变量
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_playNote(JNIEnv *env, jobject /* this */, jint note, jint svel , jint channel) {
@@ -545,6 +644,14 @@ Java_com_example_project2_FluidSynthManager_playNote(JNIEnv *env, jobject /* thi
     }
 }
 
+/**
+ * 立即停止一个音符（Note Off）
+ *
+ * @param env JNI 环境指针
+ * @param note 音符号（MIDI note number）
+ * @param channel 通道号
+ * 影响：触发底层合成器停止音符，若正在录音则同步记录 MIDI 事件
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_stopNote(JNIEnv *env, jobject /* this */, jint note, jint channel) {
@@ -559,6 +666,15 @@ Java_com_example_project2_FluidSynthManager_stopNote(JNIEnv *env, jobject /* thi
     }
 }
 
+/**
+ * 停止音符（Note Off），延迟 50ms
+ * 用于特殊场景下的延迟关音
+ *
+ * @param env JNI 环境指针
+ * @param note 音符号
+ * @param channel 通道（未使用，固定为1）
+ * 影响：延迟 50ms 触发 Note Off
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_stopNoteDelay(JNIEnv *env, jobject /* this */, jint note, jint channel) {
@@ -569,7 +685,11 @@ Java_com_example_project2_FluidSynthManager_stopNoteDelay(JNIEnv *env, jobject /
     }
 }
 
-//开启节拍器
+/**
+ * 开启节拍器
+ * @param env JNI 环境指针
+ * 影响：设置 ifMetronomeON=true，后续周期会自动播放节拍器音符
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_turnMetronomeON(JNIEnv *env, jobject) {
@@ -577,7 +697,11 @@ Java_com_example_project2_FluidSynthManager_turnMetronomeON(JNIEnv *env, jobject
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "MetronomeON");
 }
 
-//关闭节拍器
+/**
+ * 关闭节拍器
+ * @param env JNI 环境指针
+ * 影响：设置 ifMetronomeON=false，后续周期不再播放节拍器音符
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_turnMetronomeOff(JNIEnv *env, jobject) {
@@ -585,22 +709,34 @@ Java_com_example_project2_FluidSynthManager_turnMetronomeOff(JNIEnv *env, jobjec
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "StartMetronomeOff");
 }
 
-//开始录制
+/**
+ * 开始录制 MIDI 事件
+ * @param env JNI 环境指针
+ * 影响：设置 isRecording=true，后续 playNote/stopNote 会记录事件到 midiTrack
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_startRecording(JNIEnv *env, jobject) {
     isRecording = true;
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "StartRecording");
 }
-//停止录制
+/**
+ * 停止录制 MIDI 事件
+ * @param env JNI 环境指针
+ * 影响：设置 isRecording=false，不再记录新事件
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_stopRecording(JNIEnv *env, jobject) {
     isRecording = false;
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "StopRecording");
-
 }
-//停止回放
+/**
+ * 停止回放
+ * @param env JNI 环境指针
+ * 影响：设置 isPlaying=false，后续不会自动回放 midiTrack
+ * 特别说明：线程安全，使用 mtx 互斥锁
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_stopPlayback(JNIEnv *env, jobject) {
@@ -610,6 +746,12 @@ Java_com_example_project2_FluidSynthManager_stopPlayback(JNIEnv *env, jobject) {
     }
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "stopPlayback, isPlaying=%d", isPlaying);
 }
+/**
+ * 开始回放
+ * @param env JNI 环境指针
+ * 影响：设置 isPlaying=true，后续会自动回放 midiTrack
+ * 特别说明：线程安全，使用 mtx 互斥锁，cv 条件变量可唤醒等待线程
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_startPlayback(JNIEnv *env, jobject) {
@@ -620,7 +762,11 @@ Java_com_example_project2_FluidSynthManager_startPlayback(JNIEnv *env, jobject) 
     cv.notify_one();  // 唤醒等待的线程
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "startPlayback, isPlaying=%d", isPlaying);
 }
-
+/**
+ * 开始 Overdub（叠加录音/回放）
+ * @param env JNI 环境指针
+ * 影响：同时设置 isPlaying=true 和 isRecording=true
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_startOverdub(JNIEnv *env, jobject) {
@@ -628,7 +774,11 @@ Java_com_example_project2_FluidSynthManager_startOverdub(JNIEnv *env, jobject) {
     isRecording = true;
     __android_log_print(ANDROID_LOG_DEBUG, "FluidSynth", "startOverdub, isPlaying=%d, isRecording=%d", isPlaying, isRecording);
 }
-
+/**
+ * 清空当前 MIDI 循环音轨
+ * @param env JNI 环境指针
+ * 影响：清空 midiTrack，回放轨道无任何音符
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_project2_FluidSynthManager_clearLoop(JNIEnv *env, jobject) {

@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.safeDrawing
+import com.example.project2.SynthPage.DrumViewModel
 
 fun copySoundFontToInternalStorage(context: Context): String {
     val assetManager = context.assets
@@ -86,6 +87,7 @@ object FluidSynthManager {
     fun shutdown() {
         stopPlayback()
         stopRecording()
+        turnMetronomeOff()
         destoryFluidSynth()
         // 释放 FluidSynth 资源
         System.gc()
@@ -96,6 +98,8 @@ class MainActivity : ComponentActivity() {
     private val chatViewModel : ChatViewModel by viewModels()
     private val metronomeViewModel: MetronomeViewModel by viewModels()
     private val musicGenViewModel: MusicGenViewModel by viewModels()
+    private val drumViewModel: DrumViewModel by viewModels()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,6 +131,7 @@ class MainActivity : ComponentActivity() {
                             chatViewModel = chatViewModel,
                             metronomeViewModel = metronomeViewModel,
                             musicGenViewModel = musicGenViewModel,
+                            drumViewModel = drumViewModel,
                             filepath = filepath,
                             context = applicationContext
                         )

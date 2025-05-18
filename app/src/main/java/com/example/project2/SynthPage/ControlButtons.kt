@@ -5,18 +5,19 @@ package com.example.project2.SynthPage
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -35,18 +36,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.project2.FluidSynthManager
 import com.example.project2.FluidSynthManager.destroyFluidSynthLoop
+import com.example.project2.FluidSynthManager.stopPlayback
+import com.example.project2.FluidSynthManager.stopRecording
+import com.example.project2.FluidSynthManager.turnMetronomeOff
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,22 +60,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-
-import androidx.compose.material.icons.filled.*
-
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
-
-import androidx.compose.ui.input.pointer.pointerInput
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
 
 
 @Composable
@@ -134,7 +124,6 @@ fun ToggleButtonIcon(
 }
 
 
-// 新的小尺寸图标按钮组件
 @Composable
 fun TinyIconButton(
     modifier: Modifier = Modifier,
@@ -243,6 +232,7 @@ fun Buttons(
         .padding(horizontal = 0.dp), // 移除水平内边距,
     filepath: File,
     viewModel : MetronomeViewModel,
+    drumViewModel: DrumViewModel,
     onClickJumpFrontScreen: () -> Unit ={}
 ) {
     Card(
@@ -285,7 +275,9 @@ fun Buttons(
                     )
                     SaveButtonDialog(
                         Path = filepath,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        onClickJumpFrontScreen = onClickJumpFrontScreen,
+                        drumViewModel = drumViewModel
                     )
                 }
             }
@@ -359,6 +351,8 @@ fun LinearDeterminateIndicator(
 fun SaveButtonDialog(
     Path : File,
     viewModel: MetronomeViewModel,
+    drumViewModel: DrumViewModel,
+    onClickJumpFrontScreen:  () -> Unit ={},
     modifier: Modifier = Modifier // 添加modifier参数
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -391,7 +385,9 @@ fun SaveButtonDialog(
             confirmButton = {
                 Button(onClick = {
                     showProgressDialog = true // 显示进度对话框
-
+                    stopPlayback()
+                    stopRecording()
+                    turnMetronomeOff()
                     CoroutineScope(Dispatchers.IO).launch {
                         FluidSynthManager.SaveToWav(fileName, Path.toString())
                         withContext(Dispatchers.IO) {
@@ -441,6 +437,9 @@ fun SaveButtonDialog(
             confirmButton = {
                 Button(onClick = {
                     showSuccessDialog = false
+                    FluidSynthManager.clearLoop()
+                    drumViewModel.clearAllDrumNotes()
+                    onClickJumpFrontScreen()
                 }) {
                     Text("确定")
                 }
@@ -455,6 +454,8 @@ private fun BottonsPrev() {
     val fakeViewModel = object : MetronomeViewModel() {
         override val count: StateFlow<Double> = MutableStateFlow(4.0)
     }
+    val fakeViewModel2 = object : DrumViewModel() {
+    }
     val fakeFile = File("/storage/emulated/0/Music")
-    Buttons(filepath = fakeFile, viewModel = fakeViewModel)
+    Buttons(filepath = fakeFile, viewModel = fakeViewModel, drumViewModel = fakeViewModel2)
 }

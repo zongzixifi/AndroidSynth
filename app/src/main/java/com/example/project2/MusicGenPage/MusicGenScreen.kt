@@ -66,9 +66,6 @@ import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project2.R
 
-
-private const val s = "Describe your music"
-
 @Composable
 fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifier: Modifier=Modifier) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
