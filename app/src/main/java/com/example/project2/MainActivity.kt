@@ -1,26 +1,41 @@
 package com.example.project2
 
+import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Environment
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project2.ChatScreen.ChatViewModel
 import com.example.project2.MusicGenPage.MusicGenViewModel
 import com.example.project2.SynthPage.MetronomeViewModel
 import com.example.project2.SynthPage.SynthScreen
 import com.example.project2.ui.theme.Project2Theme
+import androidx.core.view.WindowInsetsControllerCompat
 import java.io.File
 import java.io.FileOutputStream
-
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.safeDrawing
 
 fun copySoundFontToInternalStorage(context: Context): String {
     val assetManager = context.assets
@@ -77,11 +92,11 @@ object FluidSynthManager {
     }
 }
 
-
 class MainActivity : ComponentActivity() {
     private val chatViewModel : ChatViewModel by viewModels()
     private val metronomeViewModel: MetronomeViewModel by viewModels()
     private val musicGenViewModel: MusicGenViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -93,11 +108,19 @@ class MainActivity : ComponentActivity() {
             musicDir.mkdirs()
         }
         val filepath = musicDir
-
+        enableEdgeToEdge()
+        val windowInsetsController =
+            WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        window.attributes.layoutInDisplayCutoutMode =
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
         setContent {
             Project2Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
+                Scaffold(modifier = Modifier
+                    .fillMaxSize()
+                ) { innerPadding ->
                     if (filepath != null) {
                         NavgationGraph(
                             modifier = Modifier.padding(innerPadding),

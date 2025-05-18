@@ -17,7 +17,10 @@ import com.example.project2.FrontPage.FrontScreen
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.project2.MusicGenPage.MusicGenViewModel
@@ -62,7 +65,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
         }
         composable<SynthScreenPage> {
             SynthScreen(
-                modifier = Modifier,
+                modifier = Modifier.padding(WindowInsets.safeDrawing.asPaddingValues()),
                 metronomeViewModel = metronomeViewModel,
                 filepath = filepath,
                 drumViewModel = drumViewModel,
@@ -70,7 +73,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                 )
         }
         composable<MusicGenScreenPage> {
-            MusicGenerationScreen(context, viewModel= musicGenViewModel)
+            MusicGenerationScreen(context, viewModel= musicGenViewModel,modifier=Modifier.padding(WindowInsets.safeDrawing.asPaddingValues()))
         }
     }
 }

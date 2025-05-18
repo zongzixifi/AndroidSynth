@@ -87,7 +87,7 @@ fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Uni
         ) {
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "选择一种方式，\n开始创作。",
+                text = "选择一种方式\n开始创作",
                 style = TextStyle(
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold
@@ -116,7 +116,7 @@ fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Uni
                     .height(70.dp)
                     .padding(horizontal = 32.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(30.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = colorResource(id=R.color.green) )
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = colorResource(id=R.color.d4) )
             ) {
                 Text(
                     text = "继续",

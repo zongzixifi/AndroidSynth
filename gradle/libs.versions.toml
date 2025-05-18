@@ -1,4 +1,5 @@
 [versions]
+accompanistSystemuicontroller = "0.34.0"
 agp = "8.8.2"
 compose = "1.0.0-beta01"
 converterGson = "2.9.0"
@@ -26,6 +27,7 @@ runtimeLivedata = "1.7.8"
 workRuntimeKtx = "2.10.1"
 
 [libraries]
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }

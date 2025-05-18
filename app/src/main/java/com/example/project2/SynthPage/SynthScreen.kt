@@ -78,8 +78,6 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
     activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     val config = LocalConfiguration.current
 
-    // 背景图片
-
     if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
         FullscreenDrumScreen(
             modifier = Modifier
@@ -93,7 +91,7 @@ fun SynthScreen(modifier: Modifier = Modifier, metronomeViewModel: MetronomeView
         )
     }else{
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background.copy(alpha = 0.0f) // 使Surface透明
         ) {
             DualLayerScreen(

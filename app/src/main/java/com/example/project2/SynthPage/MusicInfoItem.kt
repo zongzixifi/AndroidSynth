@@ -73,31 +73,6 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel: MusicViewModel =
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Row(
-                modifier = Modifier,
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
-            ) {
-                Button(
-                    modifier = Modifier.height(30.dp),
-                    onClick = {
-                        viewModel.updateBar(1)
-                    }
-                ) { Text(text = "1 BAR", fontSize = 10.sp) }
-                Button(
-                    modifier = Modifier.height(30.dp),
-                    onClick = {
-                        viewModel.updateBar(2)
-                    }
-                ) { Text(text = "2 BAR", fontSize = 10.sp) }
-                Button(
-                    modifier = Modifier.height(30.dp),
-                    onClick = {
-                        viewModel.updateBar(4)
-                    }
-                ) { Text(text = "4 BAR", fontSize = 10.sp)}
-            }
-
-
-            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp), // 添加水平内边距
@@ -198,6 +173,32 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel: MusicViewModel =
                     },
                     modifier = Modifier.weight(1f)
                 )
+            }
+            Row(
+                modifier = Modifier.padding(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(1.dp)
+            ) {
+                Button(
+                    modifier = Modifier.height(30.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    onClick = {
+                        viewModel.updateBar(1)
+                    }
+                ) { Text(text = "1 BAR", fontSize = 10.sp) }
+                Button(
+                    modifier = Modifier.height(30.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    onClick = {
+                        viewModel.updateBar(2)
+                    }
+                ) { Text(text = "2 BAR", fontSize = 10.sp) }
+                Button(
+                    modifier = Modifier.height(30.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                            onClick = {
+                        viewModel.updateBar(4)
+                    }
+                ) { Text(text = "4 BAR", fontSize = 10.sp)}
             }
         }
     }

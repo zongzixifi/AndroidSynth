@@ -55,6 +55,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,7 +70,7 @@ import com.example.project2.R
 private const val s = "Describe your music"
 
 @Composable
-fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel) {
+fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifier: Modifier=Modifier) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var musicUri by remember { mutableStateOf<Uri?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -112,17 +114,18 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel) {
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 输入区域标题
+        val pressStartFont = FontFamily(Font(R.font.pressstart_2p_regular))
         Text(
             text = stringResource(R.string.input),
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
+            fontSize = 28.sp,
+            fontFamily = pressStartFont,
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))

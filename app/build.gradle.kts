@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.compose)
     implementation(libs.reorderable)
     implementation (libs.androidx.material.icons.extended)
+    implementation (libs.accompanist.systemuicontroller)
 }
 
 kapt {
