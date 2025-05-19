@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -176,10 +177,11 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel: MusicViewModel =
             }
             Row(
                 modifier = Modifier.padding(5.dp),
-                horizontalArrangement = Arrangement.spacedBy(1.dp)
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Button(
                     modifier = Modifier.height(30.dp),
+                    shape = MaterialTheme.shapes.small,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                     onClick = {
                         viewModel.updateBar(1)
@@ -187,6 +189,7 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel: MusicViewModel =
                 ) { Text(text = "1 BAR", fontSize = 10.sp) }
                 Button(
                     modifier = Modifier.height(30.dp),
+                    shape = MaterialTheme.shapes.small,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                     onClick = {
                         viewModel.updateBar(2)
@@ -194,6 +197,7 @@ fun BasicMusicInfoSet(modifier: Modifier = Modifier, viewModel: MusicViewModel =
                 ) { Text(text = "2 BAR", fontSize = 10.sp) }
                 Button(
                     modifier = Modifier.height(30.dp),
+                    shape = MaterialTheme.shapes.small,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                             onClick = {
                         viewModel.updateBar(4)

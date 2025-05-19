@@ -32,9 +32,11 @@ import kotlinx.coroutines.Delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
-
-
+import java.util.concurrent.TimeUnit
 
 
 class ChatViewModel : ViewModel() {
@@ -51,39 +53,57 @@ class ChatViewModel : ViewModel() {
         val chatItem = ChatItem(id = count, character = character, chatText = chatText)
         _chatItems.value = _chatItems.value + chatItem
 
-        val options: Map<String, Any> = mapOf(
-            "temperature" to 0.7,
-            "top_k" to  50,
-            "top_p" to  0.9,
-        )
-
-        sendChatRequest(model = "Komorebi", prompt = chatItem.chatText, options = options)
+        sendChatRequest(prompt = chatItem.chatText)
     }
 
 
-    private fun sendChatRequest(model: String = "SFTMusicBot", prompt: String, options: Map<String, Any>) {
+    private fun sendChatRequest(prompt: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                fun NetworkChatItem.toChatItem(): ChatItem {
-                    return ChatItem(
-                        id = System.currentTimeMillis().toInt(), // 避免 `count` 计算错误
-                        character = "bot",
-                        chatText = this.response.trim() // 确保 `response` 不包含意外的空格或特殊字符
-                    )
-                }
                 _isGenerating.value = true
 
-                val request = ChatRequest(model, prompt, stream = false, options)
-                val response = ChatAPI.retrofitService.generateChat(request)
-                Log.d("ChatAPI", "Response: ${Gson().toJson(response)}")
-                val resultData: ChatItem = response.toChatItem()
-                _isGenerating.value = false
-                _chatItems.value = _chatItems.value + resultData
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .build()
+                val jsonObject = org.json.JSONObject().apply {
+                    put("query", prompt)
+                    put("top_k", 4)
+                }
+
+                val requestBody = jsonObject.toString()
+                    .toRequestBody("application/json".toMediaTypeOrNull())
+
+                val request = okhttp3.Request.Builder()
+                    .url("https://rag.zongzi.org/api/v1/chat")
+                    .post(requestBody)
+                    .build()
+
+                val response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val bodyString = response.body?.string()
+                    val json = org.json.JSONObject(bodyString ?: "")
+                    val answer = json.optString("response", "[无回答]")
+
+                    val chatItem = ChatItem(
+                        id = System.currentTimeMillis().toInt(),
+                        character = "bot",
+                        chatText = answer.trim()
+                    )
+                    _chatItems.value = _chatItems.value + chatItem
+                } else {
+                    val chatItem = ChatItem(id = count, character = "bot", chatText = "服务器响应失败")
+                    _chatItems.value = _chatItems.value + chatItem
+                }
 
             } catch (e: Exception) {
+                Log.e("ChatViewModel", "网络异常: ${e.message}", e)  // ← 打印异常日志
                 val chatItem = ChatItem(id = count, character = "bot", chatText = "network error")
-                _isGenerating.value = false
                 _chatItems.value = _chatItems.value + chatItem
+            } finally {
+                _isGenerating.value = false
             }
         }
 
