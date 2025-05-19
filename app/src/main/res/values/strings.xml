@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">project2</string>
 <!--    <string name="get_start">不知道如何使用?\n试着问问DeepSeek！!</string>-->
-    <string name="get_start">与DeepSeek对话获得灵感</string>
-    <string name="start_with_demo_music">从创建你的Demo音乐开始</string>
-    <string name="start_with_only_text">使用我们的音乐生成模型</string>
+    <string name="get_start">DeepSeek音乐助手</string>
+    <string name="start_with_demo_music">Demo音乐合成器</string>
+    <string name="start_with_only_text">音乐生成</string>
     <string name="generated_music_output">生成音乐输出</string>
     <string name="submit_and_generate">提交</string>
     <string name="please_select_a_music_file_or_make_text_input_first">请选择一个参考音频或是文本输入</string>

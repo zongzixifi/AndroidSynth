@@ -58,16 +58,16 @@ import androidx.compose.ui.graphics.ColorFilter
 fun FrontScreen(modifier: Modifier = Modifier, onClickJumpToAssistant: () -> Unit = {}, onClickJumpToSynth: () -> Unit = {}, onClickJumpToMusicGen: () -> Unit = {}) {
     val ClassContainersSetterChatPage = ClassContainerSetter(
         text = stringResource(R.string.get_start),
-        imageResId = R.drawable.deepseek
+        imageResId = R.drawable.dpsk
     )
 
     val ClassContainersSetterMusicPage = ClassContainerSetter(
         text = stringResource(R.string.start_with_demo_music),
-        imageResId = R.drawable.deepseek
+        imageResId = R.drawable.crtdemo
     )
     val ClassContainersSetterGeneratePage = ClassContainerSetter(
         text = stringResource(R.string.start_with_only_text),
-        imageResId = R.drawable.deepseek
+        imageResId = R.drawable.mgen
     )
 
     val items = listOf(ClassContainersSetterChatPage, ClassContainersSetterMusicPage, ClassContainersSetterGeneratePage)
