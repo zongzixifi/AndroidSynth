@@ -489,10 +489,12 @@ void print_option( void *data, const char *name, const char *option){
     __android_log_print(ANDROID_LOG_INFO, "FluidSynth", "Available %s: %s", name, option);
 }
 
+// 修改乐器 chan0：节拍器 chan1:合成器键盘 chan9:鼓机 chan8:和弦
 void fluidsynth_change(int sfid){
-    fluid_synth_program_select(synth, 1,  sfid, 0, 1);
+    fluid_synth_program_select(synth, 0,  sfid, 0, 115);
+    fluid_synth_program_select(synth, 1,  sfid, 0, 80);
     fluid_synth_program_select(synth, 9,  sfid, 120, preset_number);
-    fluid_synth_program_select(synth, 8,  sfid, 0, 27);
+    fluid_synth_program_select(synth, 8,  sfid, 0, 24);
 }
 
 

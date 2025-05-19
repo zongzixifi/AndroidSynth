@@ -57,11 +57,13 @@ fun NavgationGraph(modifier: Modifier = Modifier,
             FrontScreen(
                 onClickJumpToAssistant = {navController.navigateSingleTopTo(ChatScreenPage)},
                 onClickJumpToSynth = {navController.navigateSingleTopTo(SynthScreenPage)},
-                onClickJumpToMusicGen = {navController.navigateSingleTopTo(MusicGenScreenPage)}
+                onClickJumpToMusicGen = {navController.navigateSingleTopTo(MusicGenScreenPage)},
             )
         }
         composable<ChatScreenPage> {
-            ChatScreen(viewModel =  chatViewModel)
+            ChatScreen(
+                viewModel =  chatViewModel,
+                )
         }
         composable<SynthScreenPage> {
             SynthScreen(
@@ -73,7 +75,12 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                 )
         }
         composable<MusicGenScreenPage> {
-            MusicGenerationScreen(context, viewModel= musicGenViewModel,modifier=Modifier.padding(WindowInsets.safeDrawing.asPaddingValues()))
+            MusicGenerationScreen(
+                context,
+                viewModel= musicGenViewModel,
+                modifier=Modifier.padding(WindowInsets.safeDrawing.asPaddingValues()),
+                onClickJumpFrontScreen = {navController.navigateSingleTopTo(FrontScreenPage)},
+                )
         }
     }
 }

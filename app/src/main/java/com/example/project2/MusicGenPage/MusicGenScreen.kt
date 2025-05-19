@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
@@ -65,9 +66,10 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project2.R
+import com.example.project2.SynthPage.SimpleIconButton
 
 @Composable
-fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifier: Modifier=Modifier) {
+fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifier: Modifier=Modifier, onClickJumpFrontScreen: () -> Unit ={}) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var musicUri by remember { mutableStateOf<Uri?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -116,6 +118,11 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifi
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        SimpleIconButton(
+            modifier =Modifier.align(Alignment.Start),
+            onClick = onClickJumpFrontScreen,
+            icon = Icons.Filled.ArrowBackIosNew
+        )
         // 输入区域标题
         val pressStartFont = FontFamily(Font(R.font.pressstart_2p_regular))
         Text(
