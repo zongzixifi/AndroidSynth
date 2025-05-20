@@ -65,10 +65,10 @@ fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel, onClickB
             }
             ChatFlow(
                 modifier = Modifier,
-                chatItems = chatItems
+                chatItems = chatItems,
+                isGenerating = isGenerating
             )
-            IndeterminateIndicator(modifier = Modifier.padding(bottom = 65.dp),isGenerating)
-            }
+        }
         InputBar(
             saveToSQL = saveToSQL,
             modifier = Modifier

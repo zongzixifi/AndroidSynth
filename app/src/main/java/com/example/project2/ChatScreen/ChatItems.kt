@@ -31,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
@@ -50,6 +51,8 @@ import androidx.compose.ui.unit.max
 import com.example.project2.R
 import com.example.project2.data.ChatDataTest
 import com.example.project2.data.ChatItem
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun ChatBubble(modifier: Modifier = Modifier, chatItems: ChatItem) {
@@ -169,13 +172,25 @@ fun InputBar(
 }
 
 @Composable
-fun ChatFlow(modifier: Modifier = Modifier, chatItems: List<ChatItem>){
-    LazyColumn (
+fun ChatFlow(modifier: Modifier = Modifier, chatItems: List<ChatItem>, isGenerating: StateFlow<Boolean>){
+    LazyColumn(
         modifier = modifier,
     ) {
-        items(chatItems){ item ->
+        items(chatItems) { item ->
             ChatBubble(chatItems = item)
             Spacer(modifier = Modifier.padding(2.dp))
+        }
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 65.dp)
+            ) {
+                IndeterminateIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    isGenerating
+                )
+            }
         }
     }
     Spacer(Modifier.padding(bottom = 50.dp))
@@ -220,7 +235,9 @@ class EditableUserInputState(private val hint: String, initialText : String)
 @Composable
 private fun ChatBalloonPrev() {
     val chatItems = ChatDataTest()
-    ChatFlow(chatItems = chatItems.chatLists)
+    val _isGenerating = MutableStateFlow(true)
+    val isGenerating: StateFlow<Boolean> = _isGenerating
+    ChatFlow(chatItems = chatItems.chatLists, isGenerating = isGenerating)
 }
 
 @Preview
