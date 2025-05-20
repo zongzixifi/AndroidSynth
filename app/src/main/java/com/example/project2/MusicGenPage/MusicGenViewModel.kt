@@ -43,20 +43,19 @@ class MusicGenViewModel : ViewModel() {
 
     fun uploadMusicAndGenerate(context: Context, musicUri: Uri?, description: String, durtime: String = "20") {
         _isGenerating.value = true
+        _generatedMusicUri.value = null
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                //val url = "https://musicgen.zongzi.org/generate"
-                val url = "http://192.168.31.133:6006/generate"  // Android 访问本机的方式
+                val url = "https://musicgen.zongzi.org/generate"
 
                 _generatedMusicUri.value = null
-                //val jsonPrompt = """{"prompt": "$prompt"}"""
-                //val jsonRequestBody = jsonPrompt.toRequestBody("application/json".toMediaType())
+
                 val requestBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
                     .addFormDataPart("dur_time", durtime)
                     .addFormDataPart("description", description)
 
-                // **如果用户上传了音频**
+                // 如果用户上传了音频
                 musicUri?.let {
                     val file = uriToFile(context, it)
                     run {

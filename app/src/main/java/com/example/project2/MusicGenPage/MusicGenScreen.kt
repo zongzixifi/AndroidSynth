@@ -201,10 +201,13 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifi
 
         if (viewModel.generatedMusicUri.collectAsState().value != null) {
             val generatedUri = viewModel.generatedMusicUri.collectAsState().value
-            if (generatedMediaPlayer == null && generatedUri != null) {
-                generatedMediaPlayer = MediaPlayer().apply {
-                    setDataSource(context, generatedUri)
-                    prepare()
+            LaunchedEffect(generatedUri) {
+                generatedUri?.let {
+                    generatedMediaPlayer?.release()
+                    generatedMediaPlayer = MediaPlayer().apply {
+                        setDataSource(context, it)
+                        prepare()
+                    }
                 }
             }
             GeneratedAudioPlayer(

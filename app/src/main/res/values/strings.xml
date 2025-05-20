@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">project2</string>
+    <string name="app_name">Harmonics</string>
 <!--    <string name="get_start">不知道如何使用?\n试着问问DeepSeek！!</string>-->
     <string name="get_start">DeepSeek音乐助手</string>
     <string name="start_with_demo_music">Demo音乐合成器</string>
