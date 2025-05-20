@@ -1,42 +1,28 @@
 package com.example.project2
 
-import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Environment
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.project2.ChatScreen.ChatViewModel
 import com.example.project2.MusicGenPage.MusicGenViewModel
+import com.example.project2.SynthPage.DrumViewModel
 import com.example.project2.SynthPage.MetronomeViewModel
-import com.example.project2.SynthPage.SynthScreen
 import com.example.project2.ui.theme.Project2Theme
-import androidx.core.view.WindowInsetsControllerCompat
 import java.io.File
 import java.io.FileOutputStream
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.safeDrawing
-import com.example.project2.SynthPage.DrumViewModel
 
 fun copySoundFontToInternalStorage(context: Context): String {
     val assetManager = context.assets
