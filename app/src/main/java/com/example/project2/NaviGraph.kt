@@ -63,6 +63,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
         composable<ChatScreenPage> {
             ChatScreen(
                 viewModel =  chatViewModel,
+                onClickBack = {navController.navigateSingleTopTo(FrontScreenPage)},
                 )
         }
         composable<SynthScreenPage> {

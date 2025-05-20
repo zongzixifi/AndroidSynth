@@ -11,9 +11,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,11 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project2.MusicGenPage.MusicGenViewModel
+import com.example.project2.data.ChatDataTest
 import kotlinx.coroutines.flow.StateFlow
 
 
 @Composable
-fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel) {
+fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel, onClickBack: () -> Unit) {
 
     val chatItems by viewModel.chatItems
     val isGenerating = viewModel.isGenerating
@@ -38,7 +45,7 @@ fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.onBackground)
+            .background(color = Color.White)
             .padding(4.dp)) {
         Column(
                 modifier = Modifier
@@ -47,6 +54,15 @@ fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            IconButton(
+                onClick = onClickBack,
+                modifier = Modifier.padding(8.dp).align(Alignment.Start)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBackIosNew,
+                    contentDescription = "Back"
+                )
+            }
             ChatFlow(
                 modifier = Modifier,
                 chatItems = chatItems
@@ -83,5 +99,5 @@ fun IndeterminateIndicator(modifier: Modifier = Modifier,isGenerating: StateFlow
 @Composable
 private fun ChatScreenPrev() {
 //    val chatItems = ChatDataTest()
-//    ChatScreen(chatItems = chatItems.chatLists)
+//   ChatScreen(chatItems = chatItems.chatLists)
 }

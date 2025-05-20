@@ -1,15 +1,21 @@
 package com.example.project2.ChatScreen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,56 +40,81 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
+import com.example.project2.R
 import com.example.project2.data.ChatDataTest
 import com.example.project2.data.ChatItem
 
 @Composable
-fun ChatBubble(modifier: Modifier = Modifier, chatItems: ChatItem){
+fun ChatBubble(modifier: Modifier = Modifier, chatItems: ChatItem) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = if (chatItems.character == "bot") Arrangement.Start else Arrangement.End
+    ) {
+        if (chatItems.character == "bot") {
+            Icon(
+                imageVector = Icons.Filled.Face,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(36.dp)
+            )
+        }
 
-    Surface (
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.background
-    ){
-        Column (
-            modifier = Modifier,
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = AbsoluteAlignment.Left
-            ){
-            if (chatItems.character == "bot") {
-                Icon(
-                    imageVector = Icons.Filled.Face,
+        Surface(
+            modifier = Modifier
+                .width(280.dp)
+                .wrapContentHeight()
+            ,
+            shape = RoundedCornerShape(16.dp),
+            color = Color.Transparent
+        ) {
+            Box(
+                modifier = Modifier.padding(2.dp)
+            ) {
+                val bubblePainter = if (chatItems.character == "bot") {
+                    painterResource(id = R.drawable.bgl2)
+                } else {
+                    painterResource(id = R.drawable.bg)
+                }
+
+                Image(
+                    painter = bubblePainter,
                     contentDescription = null,
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .size(36.dp)
-                        .align(alignment = Alignment.Start)
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier.matchParentSize()
                 )
+
+                Column(
+                    modifier = Modifier,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    Spacer(modifier = Modifier.padding(vertical = 5.dp))
+                    Text(
+                        text = chatItems.chatText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(5.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(vertical = 5.dp))
+                }
             }
-            else {
-                Icon(
-                    imageVector = Icons.Filled.AccountCircle,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .size(36.dp)
-                        .align(alignment = Alignment.End)
-                )
-            }
-            Spacer(
+        }
+
+        if (chatItems.character != "bot") {
+            Icon(
+                imageVector = Icons.Filled.AccountCircle,
+                contentDescription = null,
                 modifier = Modifier
-                    .padding(vertical = 5.dp)
-            )
-            Text(
-                text = chatItems.chatText,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(5.dp)
-            )
-            Spacer(
-                modifier = Modifier
-                    .padding(vertical = 5.dp)
+                    .padding(start = 8.dp)
+                    .size(36.dp)
             )
         }
     }
