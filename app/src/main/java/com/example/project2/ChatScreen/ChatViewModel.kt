@@ -63,9 +63,9 @@ class ChatViewModel : ViewModel() {
                 _isGenerating.value = true
 
                 val client = OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .connectTimeout(120, TimeUnit.SECONDS)
+                    .readTimeout(120, TimeUnit.SECONDS)
+                    .writeTimeout(120, TimeUnit.SECONDS)
                     .build()
                 val jsonObject = org.json.JSONObject().apply {
                     put("query", prompt)
