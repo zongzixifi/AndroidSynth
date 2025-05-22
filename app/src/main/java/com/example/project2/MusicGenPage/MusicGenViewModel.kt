@@ -36,9 +36,9 @@ class MusicGenViewModel : ViewModel() {
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(180, TimeUnit.SECONDS)
         .readTimeout(180, TimeUnit.SECONDS)  // ⬅️ 增大读取时间
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(180, TimeUnit.SECONDS)
         .build()
 
     fun uploadMusicAndGenerate(context: Context, musicUri: Uri?, description: String, durtime: String = "20") {
@@ -81,23 +81,27 @@ class MusicGenViewModel : ViewModel() {
                     Log.e("MusicGenViewModel", "Received empty response body from server")
                     return@launch
                 }
-
+                val timestamp = System.currentTimeMillis()
+                val filename = "generated_music_$timestamp.wav"
                 if (response.isSuccessful) {
                     Log.d("MusicGenViewModel", "音频数据成功返回，正在保存...")
                     val contentValues = ContentValues().apply {
-                        put(MediaStore.Audio.Media.DISPLAY_NAME, "generated_music.wav")
+                        put(MediaStore.Audio.Media.DISPLAY_NAME, filename)
                         put(MediaStore.Audio.Media.MIME_TYPE, "audio/wav")
                         put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_MUSIC)
                     }
 
                     val resolver = context.contentResolver
-                    val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-                    uri?.let { generatedUri ->
-                        resolver.openOutputStream(generatedUri)?.use { outputStream ->
-                            response.body?.byteStream()?.copyTo(outputStream)
+                    try {
+                        val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
+                        uri?.let { generatedUri ->
+                            resolver.openOutputStream(generatedUri)?.use { outputStream ->
+                                response.body?.byteStream()?.copyTo(outputStream)
+                            }
+                            _generatedMusicUri.value = generatedUri
                         }
-                        _generatedMusicUri.value = generatedUri
+                    } catch (e: Exception) {
+                        Log.e("MusicGenViewModel", "上传出错：${e.message}")
                     }
                 }
             } catch (e: Exception) {
