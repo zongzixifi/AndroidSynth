@@ -21,8 +21,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.project2.FrontPage.TitleSelectScreen
+import com.example.project2.LoginPage.LoginScreen
+import com.example.project2.LoginPage.LoginViewModel
 import com.example.project2.MusicGenPage.MusicGenViewModel
 import com.example.project2.MusicGenPage.MusicGenerationScreen
 import com.example.project2.SynthPage.DrumViewModel
@@ -36,7 +41,7 @@ import java.io.File
 @Composable
 fun NavgationGraph(modifier: Modifier = Modifier,
                    navController: NavHostController = rememberNavController(),
-                   startDestination : FrontScreenPage = FrontScreenPage,
+                   startDestination : LoginScreenPage = LoginScreenPage,
                    chatViewModel : ChatViewModel,
                    metronomeViewModel: MetronomeViewModel,
                    drumViewModel:  DrumViewModel,
@@ -50,7 +55,7 @@ fun NavgationGraph(modifier: Modifier = Modifier,
 
     NavHost(
         navController = navController,
-        startDestination = FrontScreenPage,
+        startDestination = startDestination,
         modifier = modifier
     ){
         composable<FrontScreenPage>{
@@ -82,6 +87,16 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                 modifier=Modifier.padding(WindowInsets.safeDrawing.asPaddingValues()),
                 onClickJumpFrontScreen = {navController.navigateSingleTopTo(FrontScreenPage)},
                 )
+        }
+        composable<LoginScreenPage> {
+            LoginScreen(
+                onClickJumpFrontScreen = {navController.navigateSingleTopTo(TitleSelectScreenPage)},
+            )
+        }
+        composable<TitleSelectScreenPage> {
+            TitleSelectScreen(
+                onClickJumpFrontScreen = {navController.navigateSingleTopTo(FrontScreenPage)},
+            )
         }
     }
 }

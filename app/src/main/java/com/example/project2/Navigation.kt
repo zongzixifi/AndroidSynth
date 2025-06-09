@@ -27,9 +27,22 @@ object MusicGenScreenPage{
     const val PageName = "MusicGenScreen"
 }
 
+@Serializable
+object LoginScreenPage{
+    const val PageName = "LoginPage"
+}
+
+@Serializable
+object TitleSelectScreenPage{
+    const val PageName = "TitleSelect"
+}
+
+
 object Destinations{
     val FrontScreenPageRoute = Json.encodeToString(FrontScreenPage)
     val ChatScreenPageRoute = Json.encodeToString(ChatScreenPage)
     val SynthScreenPageRoute = Json.encodeToString(SynthScreenPage)
     val MusicGenScreenPageRoute = Json.encodeToString(MusicGenScreenPage)
+    val LoginScreenPageRoute = Json.encodeToString(LoginScreenPage)
+    val TitleSelectScreenPageRote = Json.encodeToString(TitleSelectScreenPage)
 }

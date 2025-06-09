@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.room.ktx)
+    kapt("androidx.room:room-compiler:2.7.1")
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.junit)
@@ -81,6 +82,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.hilt.android.compiler)
     // Retrofit
     implementation(libs.retrofit)

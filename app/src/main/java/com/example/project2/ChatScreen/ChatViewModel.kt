@@ -1,41 +1,19 @@
 package com.example.project2.ChatScreen
 
 import android.util.Log
-import androidx.compose.animation.core.StartOffsetType.Companion.Delay
 import androidx.compose.runtime.State
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import androidx.room.ColumnInfo
-import androidx.room.Dao
-import androidx.room.Database
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
-import androidx.room.RoomDatabase
-import com.example.project2.data.ChatItem
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import com.example.project2.data.network.ChatAPI
-import com.example.project2.data.network.ChatRequest
-import com.example.project2.data.network.NetworkChatItem
-import com.google.gson.Gson
-import kotlinx.coroutines.Delay
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.project2.data.ChatItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 

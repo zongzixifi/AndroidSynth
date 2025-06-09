@@ -21,6 +21,8 @@ import com.example.project2.MusicGenPage.MusicGenViewModel
 import com.example.project2.SynthPage.DrumViewModel
 import com.example.project2.SynthPage.MetronomeViewModel
 import com.example.project2.ui.theme.Project2Theme
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
 import java.io.File
 import java.io.FileOutputStream
 
@@ -80,6 +82,7 @@ object FluidSynthManager {
     }
 }
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val chatViewModel : ChatViewModel by viewModels()
     private val metronomeViewModel: MetronomeViewModel by viewModels()

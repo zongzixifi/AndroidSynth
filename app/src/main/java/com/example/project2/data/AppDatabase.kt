@@ -15,18 +15,3 @@ data class ChatItem(
     val character: String,
     val chatText: String
 )
-
-
-@Dao
-interface ChatItemDao {
-    @Insert
-    suspend fun insert(chatItem: ChatItem)
-
-    @Query("SELECT * FROM ChatItem")
-    suspend fun getAllChatItems(): List<ChatItem>
-}
-
-@Database(entities = [ChatItem::class], version = 1)
-abstract class AppDatabase : RoomDatabase() {
-    abstract fun chatItemDao(): ChatItemDao
-}
