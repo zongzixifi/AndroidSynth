@@ -15,8 +15,8 @@ import androidx.room.ForeignKey
     )]
 )
 data class Dialogue(
-    @PrimaryKey(autoGenerate = true) val id: Int,
-    @ColumnInfo(name = "sessions_id") val sessionId: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @ColumnInfo(name = "sessions_id") val sessionId: Int,
     @ColumnInfo(name = "role") val role: String,
     @ColumnInfo(name = "message") val message: String,
     @ColumnInfo(name = "timestamp") val timestamp: Long

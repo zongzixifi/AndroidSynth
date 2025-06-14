@@ -17,7 +17,7 @@ import com.example.project2.data.database.User
         MidiFile::class,
         MusicGenerated::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class DataBaseClass : RoomDatabase() {

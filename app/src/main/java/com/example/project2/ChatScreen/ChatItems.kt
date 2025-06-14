@@ -6,12 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -31,28 +28,22 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import com.example.project2.R
 import com.example.project2.data.ChatDataTest
 import com.example.project2.data.ChatItem
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun ChatBubble(modifier: Modifier = Modifier, chatItems: ChatItem) {
@@ -126,7 +117,7 @@ fun ChatBubble(modifier: Modifier = Modifier, chatItems: ChatItem) {
 @Composable
 fun InputBar(
     modifier: Modifier = Modifier,
-    saveToSQL: (String, String) -> Unit = { s: String, s1: String -> },
+    onClickToSend: (String) -> Unit = {},
     editableUserInputState: EditableUserInputState = rememberEditableUserInputState("")) {
     Surface (
         modifier = modifier
@@ -157,7 +148,7 @@ fun InputBar(
             IconButton(
                 onClick = {
                     if (editableUserInputState.isNotEmpty()) {
-                        saveToSQL( "user" , editableUserInputState.text)
+                        onClickToSend(editableUserInputState.text)
                         editableUserInputState.updateText("") // 清空输入框
                     }
                 },
@@ -172,7 +163,7 @@ fun InputBar(
 }
 
 @Composable
-fun ChatFlow(modifier: Modifier = Modifier, chatItems: List<ChatItem>, isGenerating: StateFlow<Boolean>){
+fun ChatFlow(modifier: Modifier = Modifier, chatItems: List<ChatItem>, isGenerating: Boolean){
     LazyColumn(
         modifier = modifier,
     ) {
@@ -235,8 +226,7 @@ class EditableUserInputState(private val hint: String, initialText : String)
 @Composable
 private fun ChatBalloonPrev() {
     val chatItems = ChatDataTest()
-    val _isGenerating = MutableStateFlow(true)
-    val isGenerating: StateFlow<Boolean> = _isGenerating
+    val isGenerating = true
     ChatFlow(chatItems = chatItems.chatLists, isGenerating = isGenerating)
 }
 

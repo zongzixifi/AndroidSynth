@@ -27,6 +27,11 @@ class TitleSelectViewModel @Inject constructor(
     private val _sessionsByUser = MutableStateFlow<List<Session>>(emptyList())
     val sessionsByUser: StateFlow<List<Session>> = _sessionsByUser
 
+    init {
+        UserSessionManager.userId?.let { userId ->
+            getSessions(userId)
+        }
+    }
 
     fun insertSession(title: String, onSuccess: () -> Unit, onFailure: (String) -> Unit){
         val userId = UserSessionManager.userId
@@ -50,7 +55,7 @@ class TitleSelectViewModel @Inject constructor(
         }
     }
 
-    fun getSessions(userId: Int){
+    private fun getSessions(userId: Int){
         viewModelScope.launch{
             _sessionsByUser.value = sessionRepository.getSessionsByUser(userId)
         }

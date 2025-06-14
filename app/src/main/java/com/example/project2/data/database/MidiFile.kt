@@ -14,9 +14,9 @@ import androidx.room.ForeignKey
     ]
 )
 data class MidiFile(
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "user_id") val userId: Int,
-    @ColumnInfo(name = "session_id") val sessionId: String,
+    @ColumnInfo(name = "session_id") val sessionId: Int,
     @ColumnInfo(name = "midi_file_path") val midiFilePath: String,
     @ColumnInfo(name = "music_file_path") val musicFilePath: String,
     @ColumnInfo(name = "key") val key: String,

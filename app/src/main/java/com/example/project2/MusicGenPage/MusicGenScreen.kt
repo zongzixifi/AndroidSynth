@@ -21,17 +21,23 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -40,6 +46,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -60,23 +67,38 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project2.R
 import com.example.project2.SynthPage.SimpleIconButton
+import com.example.project2.data.MusicGeneratedRepository
+import com.example.project2.data.database.MusicGenerated
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
-fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifier: Modifier=Modifier, onClickJumpFrontScreen: () -> Unit ={}) {
+fun MusicGenerationScreen(
+    context: Context,
+    viewModel: MusicGenViewModel = hiltViewModel(),
+    modifier: Modifier=Modifier,
+    onClickJumpFrontScreen: () -> Unit ={}
+) {
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var musicUri by remember { mutableStateOf<Uri?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
-    var textInput by remember { mutableStateOf("") }
     var durtime by remember { mutableStateOf(20) }
     var generatedMediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var generatedIsPlaying by remember { mutableStateOf(false) }
+
+    var selectedMusicUri by remember { mutableStateOf<Uri?>(null) }
+    val musicHistory by viewModel.generatedMusicHistory.collectAsState()
+    var description by remember { mutableStateOf<String>("") }
 
     var progress by remember { mutableStateOf(0.0f) }
     var generatedProgress by remember { mutableStateOf(0.0f) }
@@ -129,7 +151,9 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifi
             text = stringResource(R.string.input),
             fontSize = 28.sp,
             fontFamily = pressStartFont,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp)
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 10.dp)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -146,6 +170,7 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifi
 
         AudioPlaybackBar(
             modifier =  Modifier
+                .weight(1f)
                 .padding(12.dp),
             progress = progress,
             isPlaying = isPlaying,
@@ -168,16 +193,17 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifi
             onValueChange = { durtime = it }
         )
         DescriptionInputField(
-            value = textInput,
-            onValueChange = { textInput = it }
+            modifier = Modifier.weight(1f),
+            value = description,
+            onValueChange = { description = it }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         GenerateButton(
             onClick = {
-                if (musicUri != null || textInput.isNotEmpty()) {
-                    viewModel.uploadMusicAndGenerate(context, musicUri, textInput, durtime.toString())
+                if (musicUri != null || description.isNotEmpty()) {
+                    viewModel.uploadMusicAndGenerate(context, musicUri, description, durtime.toString())
                 } else {
                     Toast.makeText(
                         context,
@@ -187,6 +213,7 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifi
                 }
             },
             modifier = Modifier
+                .weight(1f)
                 .padding(12.dp)
                 .fillMaxWidth()
                 .height(50.dp)
@@ -199,34 +226,46 @@ fun MusicGenerationScreen(context: Context, viewModel: MusicGenViewModel, modifi
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (viewModel.generatedMusicUri.collectAsState().value != null) {
-            val generatedUri = viewModel.generatedMusicUri.collectAsState().value
-            LaunchedEffect(generatedUri) {
-                generatedUri?.let {
-                    generatedMediaPlayer?.release()
-                    generatedMediaPlayer = MediaPlayer().apply {
-                        setDataSource(context, it)
-                        prepare()
+        // 生成记录 选择、回播
+        MusicHistoryLazyColum(
+            modifier = Modifier.weight(2f),
+            musicHistory = musicHistory,
+            onMusicSelected = { selectedUrl ->
+                selectedMusicUri = Uri.parse(selectedUrl)
+                val selectedMusic = musicHistory.find { it.url == selectedUrl }
+                selectedMusic?.let { music ->
+                    description = music.prompt // 自动填充描述
+                }
+            }
+        )
+
+        LaunchedEffect(selectedMusicUri) {
+            selectedMusicUri?.let {
+                generatedMediaPlayer?.release()
+                generatedMediaPlayer = MediaPlayer().apply {
+                    setDataSource(context, it)
+                    prepare()
+                }
+            }
+        }
+        GeneratedAudioPlayer(
+            modifier = Modifier.weight(1f),
+            title = stringResource(R.string.generated_music_output),
+            progress = generatedProgress,
+            isPlaying = generatedIsPlaying,
+            onPlayPauseClick = {
+                generatedMediaPlayer?.let { player ->
+                    if (player.isPlaying) {
+                        player.pause()
+                        generatedIsPlaying = false
+                    } else {
+                        player.start()
+                        generatedIsPlaying = true
                     }
                 }
             }
-            GeneratedAudioPlayer(
-                title = stringResource(R.string.generated_music_output),
-                progress = generatedProgress,
-                isPlaying = generatedIsPlaying,
-                onPlayPauseClick = {
-                    generatedMediaPlayer?.let { player ->
-                        if (player.isPlaying) {
-                            player.pause()
-                            generatedIsPlaying = false
-                        } else {
-                            player.start()
-                            generatedIsPlaying = true
-                        }
-                    }
-                }
-            )
-        }
+        )
+
     }
 }
 
@@ -253,7 +292,9 @@ fun DurationSlider(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.fillMaxWidth().padding(bottom = 10.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -278,14 +319,6 @@ fun DurationSlider(
                 .height(4.dp)
         )
     }
-}
-
-@Preview
-@Composable
-private fun MusicGenerationScreenPrev() {
-    val fakeViewModel : MusicGenViewModel = viewModel()
-    val context = LocalContext.current
-    MusicGenerationScreen(context, fakeViewModel)
 }
 // region: 封装的 Composable 组件
 
@@ -342,7 +375,7 @@ fun DescriptionInputField(
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
-            .height(150.dp),
+            .height(100.dp),
         placeholder = { Text(stringResource(R.string.describe_your_music)) },
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.colors(
@@ -400,4 +433,209 @@ fun GeneratedAudioPlayer(
         }
     }
 }
-// endregion
+
+@Composable
+fun MusicHistoryLazyColum(
+    musicHistory: List<MusicGenerated>,
+    onMusicSelected: (String) -> Unit, // 返回选中的音频文件 URL
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        // 标题行
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "历史记录",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            if (musicHistory.isNotEmpty()) {
+                Text(
+                    text = "${musicHistory.size} 条记录",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        if (musicHistory.isEmpty()) {
+            // 空状态
+            EmptyHistoryRow()
+        } else {
+            // 历史记录横向列表
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(
+                    items = musicHistory,
+                    key = { it.music_id }
+                ) { music ->
+                    MusicHistoryCard(
+                        music = music,
+                        onSelected = { onMusicSelected(music.url) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun MusicHistoryCardPrev() {
+    val sampleMusic = MusicGenerated(
+        music_id = 1,
+        sessionId = 1,
+        url = "https://example.com/sample_music.wav",
+        prompt = "轻快的流行音乐，带有电子合成器和鼓点，适合运动时听"
+    )
+
+    MusicHistoryCard(
+        music = sampleMusic,
+        onSelected = { /* Preview 中的空实现 */ }
+    )
+}
+
+@Composable
+private fun MusicHistoryCard(
+    music: MusicGenerated,
+    onSelected: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelected() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            // 顶部：音乐图标和ID
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MusicNote,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Text(
+                    text = "#${music.music_id}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+                            shape = MaterialTheme.shapes.small
+                        )
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Prompt 文本
+            Text(
+                text = music.prompt,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.height(30.dp) // 固定高度保持卡片一致
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 选择按钮
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    onClick = onSelected,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "选择",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyHistoryRow() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.MusicOff,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column {
+                Text(
+                    text = "暂无历史记录",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "生成音乐后会在这里显示",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+        }
+    }
+}

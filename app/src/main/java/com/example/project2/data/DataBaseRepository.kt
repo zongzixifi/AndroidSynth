@@ -6,6 +6,7 @@ import com.example.project2.data.database.MusicGenerated
 import com.example.project2.data.database.Session
 import com.example.project2.data.database.User
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(private val userDao: UserDao) {
@@ -27,11 +28,11 @@ class SessionRepository @Inject constructor(private val sessionDao: SessionDao) 
         return sessionDao.insertSession(session)
     }
 
-    suspend fun updateSessionTitle(sessionId: String, newTitle: String) {
+    suspend fun updateSessionTitle(sessionId: Int, newTitle: String) {
         sessionDao.updateTitle(sessionId, newTitle)
     }
 
-    suspend fun updateSessionLastUsed(sessionId: String, time: Long) {
+    suspend fun updateSessionLastUsed(sessionId: Int, time: Long) {
         sessionDao.updateLastUsedTime(sessionId, time)
     }
 
@@ -49,7 +50,7 @@ class DialogueRepository @Inject constructor(private val dialogueDao: DialogueDa
         dialogueDao.insertDialogues(dialogues)
     }
 
-    suspend fun deleteDialoguesBySession(sessionId: String) {
+    suspend fun deleteDialoguesBySession(sessionId: Int) {
         dialogueDao.deleteDialoguesBySession(sessionId)
     }
 
@@ -57,8 +58,12 @@ class DialogueRepository @Inject constructor(private val dialogueDao: DialogueDa
         dialogueDao.deleteAllDialogues()
     }
 
-    fun getDialoguesBySession(sessionId: String): LiveData<List<Dialogue>> =
-        dialogueDao.getDialoguesForSession(sessionId)
+    fun getDialoguesBySession(sessionId: Int): Flow<List<Dialogue>> =
+        dialogueDao.getDialoguesForSessionAsFlow(sessionId)
+
+    // 添加获取最新对话的方法
+    suspend fun getLatestDialogue(sessionId: Int): Dialogue? =
+        dialogueDao.getLatestDialogue(sessionId)
 }
 
 class MidiFileRepository @Inject constructor(private val midiFileDao: MidiFileDao) {
@@ -67,10 +72,10 @@ class MidiFileRepository @Inject constructor(private val midiFileDao: MidiFileDa
         midiFileDao.insertMidiFile(file)
     }
 
-    fun getMidiFilesByUser(userId: Int): LiveData<List<MidiFile>> =
+    fun getMidiFilesByUser(userId: Int): Flow<List<MidiFile>> =
         midiFileDao.getMidiFilesByUser(userId)
 
-    fun getMidiFilesBySession(sessionId: String): LiveData<List<MidiFile>> =
+    fun getMidiFilesBySession(sessionId: Int): Flow<List<MidiFile>> =
         midiFileDao.getMidiFilesBySession(sessionId)
 
     suspend fun getMidiFileById(id: Int): MidiFile? {
@@ -81,10 +86,11 @@ class MidiFileRepository @Inject constructor(private val midiFileDao: MidiFileDa
         midiFileDao.deleteMidiFile(midiFile)
     }
 
-    suspend fun deleteMidiFilesBySession(sessionId: String) {
+    suspend fun deleteMidiFilesBySession(sessionId: Int) {
         midiFileDao.deleteMidiFilesBySession(sessionId)
     }
 }
+
 
 class MusicGeneratedRepository @Inject constructor(private val musicGeneratedDao: MusicGeneratedDao) {
 
@@ -92,14 +98,14 @@ class MusicGeneratedRepository @Inject constructor(private val musicGeneratedDao
         musicGeneratedDao.insertMusic(music)
     }
 
-    fun getGeneratedMusicBySession(sessionId: String): LiveData<List<MusicGenerated>> =
+    fun getGeneratedMusicBySession(sessionId: Int): Flow<List<MusicGenerated>> =
         musicGeneratedDao.getMusicBySession(sessionId)
 
     suspend fun getMusicById(musicId: Int): MusicGenerated? {
         return musicGeneratedDao.getMusicById(musicId)
     }
 
-    suspend fun deleteMusicBySession(sessionId: String) {
+    suspend fun deleteMusicBySession(sessionId: Int) {
         musicGeneratedDao.deleteMusicBySession(sessionId)
     }
 

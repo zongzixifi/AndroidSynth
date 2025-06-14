@@ -1,11 +1,14 @@
 package com.example.project2
 
 import android.content.Context
-import androidx.activity.viewModels
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,41 +17,26 @@ import androidx.navigation.compose.rememberNavController
 import com.example.project2.ChatScreen.ChatScreen
 import com.example.project2.ChatScreen.ChatViewModel
 import com.example.project2.FrontPage.FrontScreen
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import androidx.activity.viewModels
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.project2.FrontPage.TitleSelectScreen
 import com.example.project2.LoginPage.LoginScreen
-import com.example.project2.LoginPage.LoginViewModel
 import com.example.project2.MusicGenPage.MusicGenViewModel
 import com.example.project2.MusicGenPage.MusicGenerationScreen
 import com.example.project2.SynthPage.DrumViewModel
-import com.example.project2.SynthPage.FullscreenDrumScreen
 import com.example.project2.SynthPage.MetronomeViewModel
 import com.example.project2.SynthPage.SynthScreen
-import kotlinx.serialization.Serializable
 import java.io.File
 
 
 @Composable
 fun NavgationGraph(modifier: Modifier = Modifier,
                    navController: NavHostController = rememberNavController(),
-                   startDestination : LoginScreenPage = LoginScreenPage,
-                   chatViewModel : ChatViewModel,
+                   startDestination : Any = LoginScreenPage,
                    metronomeViewModel: MetronomeViewModel,
                    drumViewModel:  DrumViewModel,
-                   musicGenViewModel: MusicGenViewModel,
                    filepath: File,
                    context: Context
 )
+
 {
     val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentNavBackStackEntry?.destination?.route ?: startDestination
@@ -63,11 +51,12 @@ fun NavgationGraph(modifier: Modifier = Modifier,
                 onClickJumpToAssistant = {navController.navigateSingleTopTo(ChatScreenPage)},
                 onClickJumpToSynth = {navController.navigateSingleTopTo(SynthScreenPage)},
                 onClickJumpToMusicGen = {navController.navigateSingleTopTo(MusicGenScreenPage)},
+                onClickJumpToTitleSelect = {navController.navigateSingleTopTo(TitleSelectScreenPage)},
             )
         }
+
         composable<ChatScreenPage> {
             ChatScreen(
-                viewModel =  chatViewModel,
                 onClickBack = {navController.navigateSingleTopTo(FrontScreenPage)},
                 )
         }
@@ -83,19 +72,25 @@ fun NavgationGraph(modifier: Modifier = Modifier,
         composable<MusicGenScreenPage> {
             MusicGenerationScreen(
                 context,
-                viewModel= musicGenViewModel,
                 modifier=Modifier.padding(WindowInsets.safeDrawing.asPaddingValues()),
                 onClickJumpFrontScreen = {navController.navigateSingleTopTo(FrontScreenPage)},
                 )
         }
         composable<LoginScreenPage> {
             LoginScreen(
-                onClickJumpFrontScreen = {navController.navigateSingleTopTo(TitleSelectScreenPage)},
+                onClickJumpFrontScreen = {
+                    navController.navigate(TitleSelectScreenPage) {
+                        popUpTo<LoginScreenPage> { inclusive = true }
+                    }},
             )
         }
         composable<TitleSelectScreenPage> {
             TitleSelectScreen(
-                onClickJumpFrontScreen = {navController.navigateSingleTopTo(FrontScreenPage)},
+                onClickJumpFrontScreen = {
+                    navController.navigate(FrontScreenPage) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
             )
         }
     }

@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -54,10 +55,8 @@ import androidx.compose.ui.unit.sp
 import com.example.project2.FluidSynthManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorderAfterLongPress
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import org.burnoutcrew.reorderable.reorderable
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.util.Collections
 import java.util.UUID
 
@@ -236,13 +235,13 @@ fun VerticalReorderList(modifier: Modifier = Modifier) {
             Chord("C", "maj7", 4, 4),
         )
     }
-    val state = rememberReorderableLazyListState(onMove = { from, to ->
+
+    val lazyListState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
         chords.apply {
-            if (from.index != to.index) {
-                Collections.swap(this, from.index, to.index)
-            }
+            add(to.index, removeAt(from.index))
         }
-    })
+    }
 
     LaunchedEffect(chords) {
         snapshotFlow { chords.toList() }
@@ -272,19 +271,22 @@ fun VerticalReorderList(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.Start
         ) {
             LazyRow(
-                state = state.listState,
+                state = lazyListState,
                 modifier = Modifier
                     .widthIn(min = 20.dp, max = 320.dp)
-                    .reorderable(state)
-                    .detectReorderAfterLongPress(state)
             ) {
-                items(chords, key = { it.id }) { chord ->
+                items(
+                    items = chords,
+                    key = { it.id }
+                ) { chord ->
                     val chordIndex = chords.indexOf(chord)
                     val timeNum = chords.take(chordIndex).sumOf { it.beats }
-                    ReorderableItem(state, key = chord) { isDragging ->
+
+                    ReorderableItem(reorderableLazyListState, key = chord.id) { isDragging ->
                         val elevation by animateDpAsState(if (isDragging) 16.dp else 0.dp)
                         Box(
                             modifier = Modifier
+                                .draggableHandle()
                                 .shadow(elevation)
                                 .background(MaterialTheme.colorScheme.surface)
                                 .padding(horizontal = 2.dp)
@@ -293,6 +295,7 @@ fun VerticalReorderList(modifier: Modifier = Modifier) {
                                 initialChord = chord.type,
                                 RootNote = chord.root,
                                 initialBeats = chord.beats,
+                                initialoctave = chord.octave,
                                 onChordUpdated = { selectedChord, selectedBeats, selectedRoot, selectedoctave ->
                                     val rootNumPrv = getMidiFromRootNote(chord.root, chord.octave)
                                     delChord(rootNumPrv, chord.type, timeNum)

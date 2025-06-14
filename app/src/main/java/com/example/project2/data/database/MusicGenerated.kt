@@ -16,8 +16,8 @@ import androidx.room.ForeignKey
     )]
 )
 data class MusicGenerated(
-    @PrimaryKey(autoGenerate = true) val music_id: Int,
-    @ColumnInfo(name = "session_id") val sessionId: String,
+    @PrimaryKey(autoGenerate = true) val music_id: Int = 0,
+    @ColumnInfo(name = "session_id") val sessionId: Int,
     @ColumnInfo(name = "URL") val url: String,
     @ColumnInfo(name = "prompt") val prompt: String
 )

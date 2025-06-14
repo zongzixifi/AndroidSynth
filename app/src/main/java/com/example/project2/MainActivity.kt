@@ -117,9 +117,7 @@ class MainActivity : ComponentActivity() {
                     if (filepath != null) {
                         NavgationGraph(
                             modifier = Modifier.padding(innerPadding),
-                            chatViewModel = chatViewModel,
                             metronomeViewModel = metronomeViewModel,
-                            musicGenViewModel = musicGenViewModel,
                             drumViewModel = drumViewModel,
                             filepath = filepath,
                             context = applicationContext
