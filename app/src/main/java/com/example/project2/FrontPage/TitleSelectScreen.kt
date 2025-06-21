@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,16 +35,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.project2.FrontScreenPage
-import com.example.project2.LoginPage.LoginViewModel
+import com.example.project2.data.UserSessionManager
 import com.example.project2.data.database.Session
-import com.example.project2.navigateSingleTopTo
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
-import androidx.compose.runtime.collectAsState
-import com.example.project2.data.UserRepository
-import com.example.project2.data.UserSessionManager
 
 @Composable
 fun TitleSelectScreen(

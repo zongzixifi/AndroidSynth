@@ -1,12 +1,8 @@
 package com.example.project2.ChatScreen
 
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.project2.data.ChatItem
 import com.example.project2.data.ChatState
 import com.example.project2.data.DialogueRepository
 import com.example.project2.data.UserSessionManager

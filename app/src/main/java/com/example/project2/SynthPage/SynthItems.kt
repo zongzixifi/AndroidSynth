@@ -52,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project2.FluidSynthManager
 import com.example.project2.R
-import okhttp3.internal.platform.android.AndroidLog
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)

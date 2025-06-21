@@ -15,11 +15,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.project2.ChatScreen.ChatScreen
-import com.example.project2.ChatScreen.ChatViewModel
 import com.example.project2.FrontPage.FrontScreen
 import com.example.project2.FrontPage.TitleSelectScreen
 import com.example.project2.LoginPage.LoginScreen
-import com.example.project2.MusicGenPage.MusicGenViewModel
 import com.example.project2.MusicGenPage.MusicGenerationScreen
 import com.example.project2.SynthPage.DrumViewModel
 import com.example.project2.SynthPage.MetronomeViewModel

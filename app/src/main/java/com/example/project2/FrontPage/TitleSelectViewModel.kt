@@ -21,8 +21,8 @@ class TitleSelectViewModel @Inject constructor(
     private val sessionRepository: SessionRepository
 ) : ViewModel() {
 
-    private val _sessionId = MutableLiveData<Int>()
-    val sessionId: LiveData<Int> get() = _sessionId
+    private val _sessionId = MutableStateFlow<Int>(0)
+    val sessionId: StateFlow<Int> get() = _sessionId
 
     private val _sessionsByUser = MutableStateFlow<List<Session>>(emptyList())
     val sessionsByUser: StateFlow<List<Session>> = _sessionsByUser
@@ -39,7 +39,7 @@ class TitleSelectViewModel @Inject constructor(
             userId?.let { Session(userId = it, lastUsedTime = System.currentTimeMillis(), title = title) }
         viewModelScope.launch {
             try {
-                _sessionId.value = newSession?.let { sessionRepository.insertSession(it).toInt() }
+                _sessionId.value = newSession?.let { sessionRepository.insertSession(it).toInt() }?:0
                 UserSessionManager.updateSelectedSession(_sessionId.value)
                 onSuccess()
             } catch (e: SQLiteConstraintException) {

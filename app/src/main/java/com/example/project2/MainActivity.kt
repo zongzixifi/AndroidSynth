@@ -22,7 +22,6 @@ import com.example.project2.SynthPage.DrumViewModel
 import com.example.project2.SynthPage.MetronomeViewModel
 import com.example.project2.ui.theme.Project2Theme
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.HiltAndroidApp
 import java.io.File
 import java.io.FileOutputStream
 

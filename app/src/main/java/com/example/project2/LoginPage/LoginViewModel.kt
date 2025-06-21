@@ -5,14 +5,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.project2.data.database.User
-import com.example.project2.data.UserDao
 import com.example.project2.data.UserRepository
 import com.example.project2.data.UserSessionManager
+import com.example.project2.data.database.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Singleton
 
 // LoginViewModel 用于存储当前用户的登录信息，完成注册、登录功能的封装
 @HiltViewModel

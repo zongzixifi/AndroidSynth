@@ -1,8 +1,5 @@
 package com.example.project2.data
 
-import android.content.Context
-import androidx.compose.runtime.Immutable
-
 
 class ChatDataTest{
     val chatLists = listOf(

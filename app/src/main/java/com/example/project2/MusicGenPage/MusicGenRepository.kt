@@ -190,10 +190,10 @@ class MusicGenRepository @Inject constructor() {
                     val safeFileName = "audio.${file.extension.lowercase()}"
                     requestBuilder.addFormDataPart("melody", safeFileName, requestBody)
 
-                    Log.d("MusicGenRepository", "🎵 文件已添加: $safeFileName")
+                    Log.d("MusicGenRepository", "文件已添加: $safeFileName")
 
                 } catch (e: Exception) {
-                    Log.e("MusicGenRepository", "❌ 文件处理失败", e)
+                    Log.e("MusicGenRepository", "文件处理失败", e)
                     return@withContext Result.failure(Exception("文件处理失败: ${e.message}"))
                 }
             }
